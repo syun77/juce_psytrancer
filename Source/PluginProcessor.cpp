@@ -38,7 +38,8 @@ StepType stepTypeFromString (const juce::String& value)
 }
 
 PsytrancerAudioProcessor::PsytrancerAudioProcessor()
-    : AudioProcessor (BusesProperties()),
+    : AudioProcessor (BusesProperties()
+          .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
       parameters (*this, nullptr, "PARAMETERS", createParameterLayout())
 {
     clearPattern();
@@ -85,8 +86,12 @@ void PsytrancerAudioProcessor::releaseResources()
 
 bool PsytrancerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    return layouts.getMainInputChannelSet().isDisabled()
-        && layouts.getMainOutputChannelSet().isDisabled();
+    const auto input = layouts.getMainInputChannelSet();
+    const auto output = layouts.getMainOutputChannelSet();
+
+    return input.isDisabled()
+        && (output == juce::AudioChannelSet::mono()
+            || output == juce::AudioChannelSet::stereo());
 }
 
 void PsytrancerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
