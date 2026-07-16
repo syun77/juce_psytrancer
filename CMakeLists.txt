@@ -85,6 +85,10 @@ juce_disable_default_flags()
 
 add_subdirectory(extras/Build)
 
+if(NOT CMAKE_BINARY_DIR MATCHES "/tools$|/tools/")
+    add_subdirectory(Source)
+endif()
+
 # If you want to build the JUCE examples with VST2/ARA support, you'll need to make the
 # VST2/ARA headers visible to the juce_audio_processors module. You can either set the paths on
 # the command line, (e.g. -DJUCE_GLOBAL_ARA_SDK_PATH=/path/to/sdk) if you're just building the JUCE

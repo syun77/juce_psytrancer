@@ -1,0 +1,403 @@
+#include "PluginEditor.h"
+
+namespace
+{
+constexpr auto headerHeight = 78;
+constexpr auto footerHeight = 44;
+constexpr auto stepHeaderHeight = 30;
+constexpr auto rowHeight = 58;
+
+juce::Colour background() { return juce::Colour (0xff17191d); }
+juce::Colour panel() { return juce::Colour (0xff22262c); }
+juce::Colour cell() { return juce::Colour (0xff2b3037); }
+juce::Colour selected() { return juce::Colour (0xffe6c15a); }
+juce::Colour playhead() { return juce::Colour (0xff59c0d8); }
+juce::Colour text() { return juce::Colour (0xffe8ecef); }
+juce::Colour dimText() { return juce::Colour (0xff9aa4ad); }
+
+juce::Rectangle<int> removeLabel (juce::Rectangle<int>& area, int width)
+{
+    return area.removeFromLeft (width).reduced (4, 0);
+}
+
+void drawFieldLabel (juce::Graphics& g, juce::Rectangle<int> area, const juce::String& label)
+{
+    g.setColour (dimText());
+    g.setFont (13.0f);
+    g.drawFittedText (label, area, juce::Justification::centredLeft, 1);
+}
+}
+
+PsytrancerAudioProcessorEditor::PsytrancerAudioProcessorEditor (PsytrancerAudioProcessor& p)
+    : AudioProcessorEditor (&p), processor (p), parameters (p.getParameters())
+{
+    setSize (940, 430);
+    setResizable (true, true);
+    setWantsKeyboardFocus (true);
+    configureControls();
+    startTimerHz (20);
+}
+
+void PsytrancerAudioProcessorEditor::configureControls()
+{
+    auto addCombo = [this] (juce::ComboBox& box)
+    {
+        addAndMakeVisible (box);
+        box.setColour (juce::ComboBox::backgroundColourId, cell());
+        box.setColour (juce::ComboBox::textColourId, text());
+        box.setColour (juce::ComboBox::outlineColourId, juce::Colour (0xff3b424c));
+    };
+
+    addCombo (resolutionBox);
+    addCombo (rootBox);
+    addCombo (scaleBox);
+
+    auto addSlider = [this] (juce::Slider& slider)
+    {
+        addAndMakeVisible (slider);
+        slider.setSliderStyle (juce::Slider::IncDecButtons);
+        slider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 56, 24);
+        slider.setColour (juce::Slider::textBoxTextColourId, text());
+        slider.setColour (juce::Slider::textBoxBackgroundColourId, cell());
+        slider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
+    };
+
+    addSlider (lengthSlider);
+    addSlider (octaveSlider);
+
+    for (auto* button : { &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
+    {
+        addAndMakeVisible (*button);
+        button->setColour (juce::TextButton::buttonColourId, cell());
+        button->setColour (juce::TextButton::textColourOffId, text());
+    }
+
+    initButton.onClick = [this]
+    {
+        processor.clearPattern();
+        selectedStep = 0;
+        page = 0;
+        repaint();
+    };
+
+    repeatButton.onClick = [this]
+    {
+        processor.repeatFirstPageToLength();
+        repaint();
+    };
+
+    shiftLeftButton.onClick = [this] { processor.shiftPattern (-1); repaint(); };
+    shiftRightButton.onClick = [this] { processor.shiftPattern (1); repaint(); };
+    panicButton.onClick = [this] { processor.panic(); };
+
+    resolutionAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "resolution", resolutionBox);
+    rootAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "root", rootBox);
+    scaleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "scale", scaleBox);
+    lengthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "length", lengthSlider);
+    octaveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "octave", octaveSlider);
+}
+
+void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
+{
+    g.fillAll (background());
+
+    auto bounds = getLocalBounds();
+    auto header = bounds.removeFromTop (headerHeight).reduced (16, 10);
+
+    g.setColour (text());
+    g.setFont (juce::FontOptions (26.0f, juce::Font::bold));
+    g.drawFittedText ("Psytrancer", header.removeFromLeft (180), juce::Justification::centredLeft, 1);
+
+    g.setFont (13.0f);
+    g.setColour (dimText());
+    g.drawFittedText ("128 step MIDI sequencer", header.removeFromLeft (180), juce::Justification::centredLeft, 1);
+
+    const std::array<std::pair<juce::Component*, const char*>, 5> labelledControls {{
+        { &lengthSlider, "Length" },
+        { &resolutionBox, "Rate" },
+        { &rootBox, "Root" },
+        { &octaveSlider, "Octave" },
+        { &scaleBox, "Scale" }
+    }};
+
+    for (const auto& item : labelledControls)
+    {
+        auto labelArea = item.first->getBounds().translated (0, -18).withHeight (16);
+        drawFieldLabel (g, labelArea, item.second);
+    }
+
+    drawStepGrid (g, gridBounds);
+
+    auto footer = getLocalBounds().removeFromBottom (footerHeight).reduced (16, 6);
+    g.setColour (panel());
+    g.fillRoundedRectangle (footer.toFloat(), 6.0f);
+    g.setColour (dimText());
+    g.setFont (14.0f);
+    g.drawFittedText ("Page " + juce::String (page + 1) + "/8   Selected Step "
+                          + juce::String (selectedStep + 1)
+                          + "   Use arrows, Space, G/H/R, +/- gate, [/] velocity",
+                      footer.reduced (12, 0), juce::Justification::centredLeft, 1);
+}
+
+void PsytrancerAudioProcessorEditor::resized()
+{
+    auto area = getLocalBounds().reduced (16);
+    auto top = area.removeFromTop (headerHeight - 16);
+    top.removeFromLeft (360);
+
+    auto row1 = top.removeFromTop (34);
+    row1.removeFromLeft (0);
+    auto setLabelAndControl = [] (juce::Rectangle<int>& row, juce::Component& control, int labelWidth, int controlWidth)
+    {
+        row.removeFromLeft (labelWidth);
+        control.setBounds (row.removeFromLeft (controlWidth).reduced (3, 4));
+    };
+
+    setLabelAndControl (row1, lengthSlider, 52, 118);
+    setLabelAndControl (row1, resolutionBox, 42, 96);
+    setLabelAndControl (row1, rootBox, 42, 82);
+    setLabelAndControl (row1, octaveSlider, 56, 110);
+    setLabelAndControl (row1, scaleBox, 48, 160);
+
+    auto row2 = top.removeFromTop (34);
+    initButton.setBounds (row2.removeFromLeft (70).reduced (3, 4));
+    repeatButton.setBounds (row2.removeFromLeft (86).reduced (3, 4));
+    shiftLeftButton.setBounds (row2.removeFromLeft (44).reduced (3, 4));
+    shiftRightButton.setBounds (row2.removeFromLeft (44).reduced (3, 4));
+    panicButton.setBounds (row2.removeFromLeft (80).reduced (3, 4));
+
+    area.removeFromBottom (footerHeight);
+    gridBounds = area.reduced (0, 8);
+}
+
+void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    if (bounds.isEmpty())
+        return;
+
+    g.setColour (panel());
+    g.fillRoundedRectangle (bounds.toFloat(), 8.0f);
+
+    const auto labelWidth = 84;
+    auto body = bounds.reduced (10);
+    auto rowLabels = body.removeFromLeft (labelWidth);
+    auto grid = body;
+    const auto cellWidth = juce::jmax (32, grid.getWidth() / visibleSteps);
+    const auto startStep = page * visibleSteps;
+    const auto playStep = processor.getCurrentStep();
+    const auto sequenceLength = processor.getSequenceLength();
+    const auto baseNote = processor.getBaseRootMidiNote();
+    const auto scale = getScaleDefinition (processor.getScaleType());
+
+    g.setFont (juce::FontOptions (13.0f, juce::Font::bold));
+    const std::array<juce::String, 6> labels { "Step", "Pitch", "Note", "Type", "Gate", "Velocity" };
+
+    for (const auto& label : labels)
+    {
+        auto labelArea = rowLabels.removeFromTop (label == "Step" ? stepHeaderHeight : rowHeight);
+        g.setColour (dimText());
+        g.drawFittedText (label, labelArea.reduced (6), juce::Justification::centredRight, 1);
+    }
+
+    for (auto visible = 0; visible < visibleSteps; ++visible)
+    {
+        const auto stepIndex = startStep + visible;
+        const auto x = grid.getX() + visible * cellWidth;
+        auto column = juce::Rectangle<int> (x, grid.getY(), cellWidth - 2, stepHeaderHeight + rowHeight * 5);
+        const auto active = stepIndex < sequenceLength;
+        const auto isSelected = stepIndex == selectedStep;
+        const auto isPlaying = stepIndex == playStep;
+
+        g.setColour (isSelected ? selected().withAlpha (0.22f) : cell());
+        g.fillRoundedRectangle (column.toFloat(), 5.0f);
+
+        if (! active)
+        {
+            g.setColour (juce::Colours::black.withAlpha (0.35f));
+            g.fillRoundedRectangle (column.toFloat(), 5.0f);
+        }
+
+        if (isPlaying)
+        {
+            g.setColour (playhead());
+            g.fillRect (column.removeFromTop (3));
+        }
+
+        auto step = processor.getStep (stepIndex);
+        auto row = juce::Rectangle<int> (x, grid.getY(), cellWidth - 2, stepHeaderHeight);
+
+        g.setColour (isSelected ? selected() : dimText());
+        g.setFont (13.0f);
+        g.drawFittedText (juce::String (stepIndex + 1), row, juce::Justification::centred, 1);
+
+        auto drawRow = [&] (const juce::String& value, juce::Colour colour)
+        {
+            row.translate (0, row.getHeight());
+            row.setHeight (rowHeight);
+            g.setColour (colour);
+            g.setFont (rowHeight > 50 ? 18.0f : 15.0f);
+            g.drawFittedText (value, row.reduced (3), juce::Justification::centred, 2);
+        };
+
+        const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
+        const auto muted = step.type != StepType::gate;
+        drawRow (step.type == StepType::hold ? "-" : step.type == StepType::rest ? "-" : juce::String (step.relativePitch),
+                 muted ? dimText() : text());
+        drawRow (step.type == StepType::gate ? midiNoteName (note) : "-", muted ? dimText() : text());
+        drawRow (getStepTypeName (step.type), step.type == StepType::rest ? dimText() : selected());
+        drawRow (step.type == StepType::gate ? juce::String (juce::roundToInt (step.gateRate * 100.0f)) + "%" : "-",
+                 step.type == StepType::gate ? text() : dimText());
+        drawRow (step.type == StepType::gate ? juce::String ((int) step.velocity) : "-",
+                 step.type == StepType::gate ? text() : dimText());
+
+        if (visible % 4 == 3)
+        {
+            g.setColour (juce::Colours::white.withAlpha (0.12f));
+            g.fillRect (x + cellWidth - 2, grid.getY(), 1, grid.getHeight());
+        }
+    }
+}
+
+void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
+{
+    grabKeyboardFocus();
+    editStepAt (event.getPosition(), false);
+}
+
+void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
+{
+    editStepAt (event.getPosition(), true);
+}
+
+void PsytrancerAudioProcessorEditor::editStepAt (juce::Point<int> position, bool drag)
+{
+    if (! gridBounds.contains (position))
+        return;
+
+    const auto step = getStepAtX (position.x);
+
+    if (step < 0 || step >= 128)
+        return;
+
+    setSelectedStep (step);
+
+    if (drag)
+        return;
+
+    auto stepData = processor.getStep (step);
+    const auto localY = position.y - gridBounds.reduced (10).getY();
+    const auto rowIndex = (localY - stepHeaderHeight) / rowHeight;
+
+    if (rowIndex == 0 || rowIndex == 1)
+    {
+        stepData.type = StepType::gate;
+        processor.setStep (step, stepData);
+    }
+    else if (rowIndex == 2)
+    {
+        stepData.type = stepData.type == StepType::gate ? StepType::hold
+                      : stepData.type == StepType::hold ? StepType::rest
+                                                        : StepType::gate;
+        processor.setStep (step, stepData);
+    }
+
+    repaint();
+}
+
+int PsytrancerAudioProcessorEditor::getStepAtX (int x) const
+{
+    const auto body = gridBounds.reduced (10);
+    const auto gridX = body.getX() + 84;
+    const auto gridWidth = body.getWidth() - 84;
+    const auto cellWidth = juce::jmax (32, gridWidth / visibleSteps);
+
+    if (x < gridX)
+        return -1;
+
+    return page * visibleSteps + (x - gridX) / cellWidth;
+}
+
+void PsytrancerAudioProcessorEditor::setSelectedStep (int step)
+{
+    selectedStep = juce::jlimit (0, 127, step);
+    updatePageForSelection();
+}
+
+void PsytrancerAudioProcessorEditor::updatePageForSelection()
+{
+    page = juce::jlimit (0, 7, selectedStep / visibleSteps);
+}
+
+bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
+{
+    auto step = processor.getStep (selectedStep);
+    const auto keyCode = key.getKeyCode();
+
+    if (keyCode == juce::KeyPress::leftKey) setSelectedStep (selectedStep - 1);
+    else if (keyCode == juce::KeyPress::rightKey) setSelectedStep (selectedStep + 1);
+    else if (keyCode == juce::KeyPress::pageUpKey) setSelectedStep (selectedStep - visibleSteps);
+    else if (keyCode == juce::KeyPress::pageDownKey) setSelectedStep (selectedStep + visibleSteps);
+    else if (keyCode == juce::KeyPress::homeKey) setSelectedStep (0);
+    else if (keyCode == juce::KeyPress::endKey) setSelectedStep (processor.getSequenceLength() - 1);
+    else if (keyCode == juce::KeyPress::upKey)
+    {
+        const auto scaleSize = (int) getScaleDefinition (processor.getScaleType()).offsets.size();
+        step.relativePitch += key.getModifiers().isShiftDown() ? scaleSize : 1;
+        step.type = StepType::gate;
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == juce::KeyPress::downKey)
+    {
+        const auto scaleSize = (int) getScaleDefinition (processor.getScaleType()).offsets.size();
+        step.relativePitch -= key.getModifiers().isShiftDown() ? scaleSize : 1;
+        step.type = StepType::gate;
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == ' ' || keyCode == 'g' || keyCode == 'G')
+    {
+        step.type = step.type == StepType::gate && keyCode == ' ' ? StepType::rest : StepType::gate;
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == 'h' || keyCode == 'H')
+    {
+        step.type = StepType::hold;
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == 'r' || keyCode == 'R' || keyCode == juce::KeyPress::deleteKey)
+    {
+        step.type = StepType::rest;
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == '+' || keyCode == '=')
+    {
+        step.gateRate = juce::jmin (1.0f, step.gateRate + 0.05f);
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == '-')
+    {
+        step.gateRate = juce::jmax (0.01f, step.gateRate - 0.05f);
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == ']')
+    {
+        step.velocity = (juce::uint8) juce::jmin (127, (int) step.velocity + 5);
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == '[')
+    {
+        step.velocity = (juce::uint8) juce::jmax (1, (int) step.velocity - 5);
+        processor.setStep (selectedStep, step);
+    }
+    else
+    {
+        return false;
+    }
+
+    repaint();
+    return true;
+}
+
+void PsytrancerAudioProcessorEditor::timerCallback()
+{
+    repaint (gridBounds);
+}
