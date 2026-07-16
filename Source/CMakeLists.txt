@@ -5,6 +5,7 @@ juce_add_plugin(Psytrancer
     PLUGIN_MANUFACTURER_CODE Ozek
     PLUGIN_CODE PsGn
     FORMATS VST3
+    VST3_CATEGORIES Instrument Synth
     PRODUCT_NAME "Psytrancer"
     IS_MIDI_EFFECT FALSE
     NEEDS_MIDI_INPUT TRUE
