@@ -35,6 +35,36 @@ StepType stepTypeFromString (const juce::String& value)
 
     return StepType::gate;
 }
+
+juce::ValueTree makeParameterOnlyState (const juce::ValueTree& source)
+{
+    juce::ValueTree result { "PARAMETERS" };
+
+    if (! source.isValid())
+        return result;
+
+    for (const auto& child : source)
+        if (child.hasType ("PARAM"))
+            result.appendChild (child.createCopy(), nullptr);
+
+    return result;
+}
+
+juce::ValueTree getParameterStateFromRoot (const juce::ValueTree& root)
+{
+    if (root.hasType ("PSYTRANCER_STATE"))
+        return root.getChildWithName ("PARAMETERS");
+
+    return root;
+}
+
+juce::ValueTree getStepStateFromRoot (const juce::ValueTree& root)
+{
+    if (root.hasType ("PSYTRANCER_STATE"))
+        return root.getChildWithName ("STEPS");
+
+    return root.getChildWithName ("STEPS");
+}
 }
 
 PsytrancerAudioProcessor::PsytrancerAudioProcessor()
@@ -371,8 +401,10 @@ void PsytrancerAudioProcessor::loadStepsFromValueTree (const juce::ValueTree& ro
 
 void PsytrancerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    auto state = parameters.copyState();
+    juce::ValueTree state { "PSYTRANCER_STATE" };
+    state.appendChild (makeParameterOnlyState (parameters.copyState()), nullptr);
     state.appendChild (stepsToValueTree(), nullptr);
+
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
     copyXmlToBinary (*xml, destData);
 }
@@ -384,9 +416,13 @@ void PsytrancerAudioProcessor::setStateInformation (const void* data, int sizeIn
     if (xml == nullptr)
         return;
 
-    auto state = juce::ValueTree::fromXml (*xml);
-    parameters.replaceState (state);
-    loadStepsFromValueTree (state.getChildWithName ("STEPS"));
+    const auto state = juce::ValueTree::fromXml (*xml);
+
+    if (! state.isValid())
+        return;
+
+    parameters.replaceState (makeParameterOnlyState (getParameterStateFromRoot (state)));
+    loadStepsFromValueTree (getStepStateFromRoot (state));
     panic();
 }
 
