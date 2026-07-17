@@ -18,6 +18,7 @@ juce::String stepTypeToString (StepType type)
     switch (type)
     {
         case StepType::gate: return "gate";
+        case StepType::cut: return "cut";
         case StepType::hold: return "hold";
         case StepType::rest: return "rest";
     }
@@ -27,6 +28,9 @@ juce::String stepTypeToString (StepType type)
 
 StepType stepTypeFromString (const juce::String& value)
 {
+    if (value == "cut")
+        return StepType::cut;
+
     if (value == "hold")
         return StepType::hold;
 
@@ -315,13 +319,14 @@ void PsytrancerAudioProcessor::renderSequenceSegment (juce::MidiBuffer& generate
             step = steps[(size_t) stepIndex];
         }
 
-        if (step.type == StepType::gate)
+        if (step.type == StepType::gate || step.type == StepType::cut)
         {
             sendActiveNoteOff (generated, outputSample);
 
             const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
             activeNote = note;
-            const auto effectiveGateRate = juce::jlimit (0.01f, 1.0f, step.gateRate * gateMultiplier);
+            const auto typeGateMultiplier = step.type == StepType::cut ? 0.1f : 1.0f;
+            const auto effectiveGateRate = juce::jlimit (0.01f, 1.0f, step.gateRate * gateMultiplier * typeGateMultiplier);
             pendingNoteOffPpq = boundaryPpq + stepLengthPpq * effectiveGateRate;
             generated.addEvent (juce::MidiMessage::noteOn (activeChannel, note, (juce::uint8) step.velocity), outputSample);
         }
@@ -385,7 +390,7 @@ void PsytrancerAudioProcessor::setStep (int index, StepData step)
 
         for (auto i = safeIndex - 1; i >= 0; --i)
         {
-            if (steps[(size_t) i].type == StepType::gate)
+            if (steps[(size_t) i].type == StepType::gate || steps[(size_t) i].type == StepType::cut)
             {
                 hasGateBefore = true;
                 break;

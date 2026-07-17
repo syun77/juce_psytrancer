@@ -198,7 +198,7 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (14.0f);
     g.drawFittedText ("Page " + juce::String (page + 1) + "/" + juce::String (getPageCount()) + "   Selected Step "
                           + juce::String (selectedStep + 1)
-                          + "   Length +/-16, Page << >>, Space, G/H/R",
+                          + "   Length +/-16, Page << >>, G/C/H/R",
                       footer.reduced (12, 0), juce::Justification::centredLeft, 1);
 
     if (! overview.isEmpty())
@@ -322,7 +322,7 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
             g.setFont (rowHeight > 50 ? 18.0f : 15.0f);
             g.drawFittedText (value, row.reduced (3), juce::Justification::centred, 2);
 
-            if (isEditableValueRow (rowIndex))
+            if (isStepParameterRow (rowIndex))
             {
                 const auto isDragging = stepIndex == dragStep && rowIndex == dragRow;
                 const auto isHovering = stepIndex == hoverStep && rowIndex == hoverRow;
@@ -336,15 +336,17 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
         };
 
         const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
-        const auto muted = step.type != StepType::gate;
+        const auto sounded = step.type == StepType::gate || step.type == StepType::cut;
+        const auto muted = ! sounded;
+        const auto displayedGateRate = step.type == StepType::cut ? step.gateRate * 0.1f : step.gateRate;
         drawRow (step.type == StepType::hold ? "-" : step.type == StepType::rest ? "-" : juce::String (step.relativePitch),
                  muted ? dimText() : text(), 0);
-        drawRow (step.type == StepType::gate ? midiNoteName (note) : "-", muted ? dimText() : text(), 1);
+        drawRow (sounded ? midiNoteName (note) : "-", muted ? dimText() : text(), 1);
         drawRow (getStepTypeName (step.type), step.type == StepType::rest ? dimText() : selected(), 2);
-        drawRow (step.type == StepType::gate ? juce::String (juce::roundToInt (step.gateRate * 100.0f)) + "%" : "-",
-                 step.type == StepType::gate ? text() : dimText(), 3);
-        drawRow (step.type == StepType::gate ? juce::String ((int) step.velocity) : "-",
-                 step.type == StepType::gate ? text() : dimText(), 4);
+        drawRow (sounded ? juce::String (juce::roundToInt (displayedGateRate * 100.0f)) + "%" : "-",
+                 sounded ? text() : dimText(), 3);
+        drawRow (sounded ? juce::String ((int) step.velocity) : "-",
+                 sounded ? text() : dimText(), 4);
 
         if (visible % 4 == 3)
         {
@@ -397,7 +399,7 @@ void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::
 
             if (stepIndex >= sequenceLength)
                 g.setColour (juce::Colours::black.withAlpha (0.45f));
-            else if (step.type == StepType::gate)
+            else if (step.type == StepType::gate || step.type == StepType::cut)
                 g.setColour (selected());
             else if (step.type == StepType::hold)
                 g.setColour (selected().withAlpha (0.45f));
@@ -428,8 +430,14 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
     else
     {
         dragStartPitch = 0;
-        dragStartGate = 0.75f;
+        dragStartGate = 1.0f;
         dragStartVelocity = 100;
+    }
+
+    if (event.mods.isMiddleButtonDown() && resetStepValueAt (dragStep, dragRow))
+    {
+        repaint();
+        return;
     }
 
     editStepAt (event.getPosition(), false);
@@ -451,7 +459,6 @@ void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
         else if (isVelocityEditRow (dragRow))
             stepData.velocity = (juce::uint8) juce::jlimit (1, 127, (int) dragStartVelocity + dragDelta / 2);
 
-        stepData.type = StepType::gate;
         processor.setStep (dragStep, stepData);
         repaint();
         return;
@@ -513,7 +520,6 @@ void PsytrancerAudioProcessorEditor::mouseWheelMove (const juce::MouseEvent& eve
             else if (isVelocityEditRow (row))
                 stepData.velocity = (juce::uint8) juce::jlimit (1, 127, (int) stepData.velocity + direction * 5);
 
-            stepData.type = StepType::gate;
             processor.setStep (step, stepData);
             repaint();
             return;
@@ -541,14 +547,10 @@ void PsytrancerAudioProcessorEditor::editStepAt (juce::Point<int> position, bool
     auto stepData = processor.getStep (step);
     const auto rowIndex = getGridRowAtY (position.y);
 
-    if (isPitchEditRow (rowIndex))
+    if (rowIndex == 2)
     {
-        stepData.type = StepType::gate;
-        processor.setStep (step, stepData);
-    }
-    else if (rowIndex == 2)
-    {
-        stepData.type = stepData.type == StepType::gate ? StepType::hold
+        stepData.type = stepData.type == StepType::gate ? StepType::cut
+                      : stepData.type == StepType::cut ? StepType::hold
                       : stepData.type == StepType::hold ? StepType::rest
                                                         : StepType::gate;
         processor.setStep (step, stepData);
@@ -585,6 +587,11 @@ bool PsytrancerAudioProcessorEditor::isPitchEditRow (int row) const
     return row == 0 || row == 1;
 }
 
+bool PsytrancerAudioProcessorEditor::isTypeEditRow (int row) const
+{
+    return row == 2;
+}
+
 bool PsytrancerAudioProcessorEditor::isGateEditRow (int row) const
 {
     return row == 3;
@@ -598,6 +605,33 @@ bool PsytrancerAudioProcessorEditor::isVelocityEditRow (int row) const
 bool PsytrancerAudioProcessorEditor::isEditableValueRow (int row) const
 {
     return isPitchEditRow (row) || isGateEditRow (row) || isVelocityEditRow (row);
+}
+
+bool PsytrancerAudioProcessorEditor::isStepParameterRow (int row) const
+{
+    return isEditableValueRow (row) || isTypeEditRow (row);
+}
+
+bool PsytrancerAudioProcessorEditor::resetStepValueAt (int step, int row)
+{
+    if (step < 0 || step >= 128 || ! isStepParameterRow (row))
+        return false;
+
+    setSelectedStep (step);
+
+    auto stepData = processor.getStep (step);
+
+    if (isPitchEditRow (row))
+        stepData.relativePitch = 0;
+    else if (isTypeEditRow (row))
+        stepData.type = StepType::rest;
+    else if (isGateEditRow (row))
+        stepData.gateRate = 1.0f;
+    else if (isVelocityEditRow (row))
+        stepData.velocity = 100;
+
+    processor.setStep (step, stepData);
+    return true;
 }
 
 int PsytrancerAudioProcessorEditor::getPageCount() const
@@ -694,19 +728,26 @@ bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
     {
         const auto scaleSize = (int) getScaleDefinition (processor.getScaleType()).offsets.size();
         step.relativePitch += key.getModifiers().isShiftDown() ? scaleSize : 1;
-        step.type = StepType::gate;
         processor.setStep (selectedStep, step);
     }
     else if (keyCode == juce::KeyPress::downKey)
     {
         const auto scaleSize = (int) getScaleDefinition (processor.getScaleType()).offsets.size();
         step.relativePitch -= key.getModifiers().isShiftDown() ? scaleSize : 1;
+        processor.setStep (selectedStep, step);
+    }
+    else if (keyCode == ' ')
+    {
+        return false;
+    }
+    else if (keyCode == 'g' || keyCode == 'G')
+    {
         step.type = StepType::gate;
         processor.setStep (selectedStep, step);
     }
-    else if (keyCode == ' ' || keyCode == 'g' || keyCode == 'G')
+    else if (keyCode == 'c' || keyCode == 'C')
     {
-        step.type = step.type == StepType::gate && keyCode == ' ' ? StepType::rest : StepType::gate;
+        step.type = StepType::cut;
         processor.setStep (selectedStep, step);
     }
     else if (keyCode == 'h' || keyCode == 'H')

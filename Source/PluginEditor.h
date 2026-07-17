@@ -34,9 +34,12 @@ private:
     int getStepAtX (int x) const;
     int getGridRowAtY (int y) const;
     bool isPitchEditRow (int row) const;
+    bool isTypeEditRow (int row) const;
     bool isGateEditRow (int row) const;
     bool isVelocityEditRow (int row) const;
     bool isEditableValueRow (int row) const;
+    bool isStepParameterRow (int row) const;
+    bool resetStepValueAt (int step, int row);
     int getPageCount() const;
     void setPage (int newPage);
     void setSelectedStep (int step);
@@ -84,7 +87,7 @@ private:
     int dragRow = -1;
     int dragStartY = 0;
     int dragStartPitch = 0;
-    float dragStartGate = 0.75f;
+    float dragStartGate = 1.0f;
     juce::uint8 dragStartVelocity = 100;
     int hoverStep = -1;
     int hoverRow = -1;

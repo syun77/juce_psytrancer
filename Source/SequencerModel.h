@@ -6,6 +6,7 @@
 enum class StepType
 {
     gate = 0,
+    cut,
     hold,
     rest
 };
@@ -14,7 +15,7 @@ struct StepData
 {
     StepType type = StepType::gate;
     int relativePitch = 0;
-    float gateRate = 0.75f;
+    float gateRate = 1.0f;
     juce::uint8 velocity = 100;
 };
 
@@ -162,6 +163,7 @@ inline juce::String getStepTypeName (StepType type)
     switch (type)
     {
         case StepType::gate: return "G";
+        case StepType::cut: return "C";
         case StepType::hold: return "H";
         case StepType::rest: return "R";
     }
