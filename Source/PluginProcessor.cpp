@@ -103,6 +103,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout PsytrancerAudioProcessor::cr
     params.push_back (std::make_unique<juce::AudioParameterInt> (
         juce::ParameterID { "octave", 1 }, "Octave", 0, 8, 4));
 
+    params.push_back (std::make_unique<juce::AudioParameterBool> (
+        juce::ParameterID { "midiKey", 1 }, "MIDI Key", false));
+
     params.push_back (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID { "gateMultiplier", 1 }, "Gate Mult",
         juce::NormalisableRange<float> { 0.01f, 2.0f, 0.01f }, 1.0f,
@@ -163,6 +166,17 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
     buffer.clear();
 
     juce::MidiBuffer generated;
+
+    if (isMidiKeyEnabled())
+    {
+        for (const auto metadata : midi)
+        {
+            const auto message = metadata.getMessage();
+
+            if (message.isNoteOn())
+                midiKeyNote.store (message.getNoteNumber());
+        }
+    }
 
     if (panicRequested.exchange (false))
     {
@@ -367,7 +381,21 @@ int PsytrancerAudioProcessor::getBaseRootMidiNote() const
 {
     const auto root = (int) *parameters.getRawParameterValue ("root");
     const auto octave = (int) *parameters.getRawParameterValue ("octave");
+
+    if (isMidiKeyEnabled())
+    {
+        const auto inputNote = midiKeyNote.load();
+
+        if (inputNote >= 0)
+            return juce::jlimit (0, 127, inputNote + (octave - 4) * 12);
+    }
+
     return juce::jlimit (0, 127, (octave + 1) * 12 + root);
+}
+
+bool PsytrancerAudioProcessor::isMidiKeyEnabled() const
+{
+    return parameters.getRawParameterValue ("midiKey")->load() >= 0.5f;
 }
 
 ScaleType PsytrancerAudioProcessor::getScaleType() const

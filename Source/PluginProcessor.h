@@ -43,6 +43,7 @@ public:
 
     int getCurrentStep() const { return currentStep.load(); }
     int getBaseRootMidiNote() const;
+    bool isMidiKeyEnabled() const;
     ScaleType getScaleType() const;
     StepResolution getResolution() const;
     int getSequenceLength() const;
@@ -76,6 +77,7 @@ private:
     int activeNote = -1;
     int activeChannel = 1;
     std::atomic<int> currentStep { -1 };
+    std::atomic<int> midiKeyNote { -1 };
     bool wasPlaying = false;
     std::atomic<bool> panicRequested { false };
 

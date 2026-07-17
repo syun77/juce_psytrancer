@@ -116,6 +116,11 @@ void PsytrancerAudioProcessorEditor::configureControls()
     pageMapToggle.setColour (juce::ToggleButton::tickColourId, selected());
     pageMapToggle.setColour (juce::ToggleButton::tickDisabledColourId, dimText());
 
+    addAndMakeVisible (midiKeyToggle);
+    midiKeyToggle.setColour (juce::ToggleButton::textColourId, text());
+    midiKeyToggle.setColour (juce::ToggleButton::tickColourId, selected());
+    midiKeyToggle.setColour (juce::ToggleButton::tickDisabledColourId, dimText());
+
     lengthDownButton.onClick = [this] { changeLengthBy (-visibleSteps); };
     lengthUpButton.onClick = [this] { changeLengthBy (visibleSteps); };
     prevPageButton.onClick = [this] { setPage (page - 1); };
@@ -148,6 +153,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     lengthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "length", lengthSlider);
     octaveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "octave", octaveSlider);
     gateMultiplierAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "gateMultiplier", gateMultiplierSlider);
+    midiKeyAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (parameters, "midiKey", midiKeyToggle);
 
     refreshPresetList();
 }
@@ -218,6 +224,7 @@ void PsytrancerAudioProcessorEditor::resized()
     setControl (row1, resolutionBox, 86);
     setControl (row1, rootBox, 70);
     setControl (row1, octaveSlider, 86);
+    setControl (row1, midiKeyToggle, 96);
     gateMultiplierSlider.setBounds (row1.removeFromLeft (82).reduced (8, 0));
     row1.removeFromLeft (8);
     setControl (row1, scaleBox, 150);
