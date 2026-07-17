@@ -15,9 +15,9 @@ juce::Colour playhead() { return juce::Colour (0xff59c0d8); }
 juce::Colour text() { return juce::Colour (0xffe8ecef); }
 juce::Colour dimText() { return juce::Colour (0xff9aa4ad); }
 
-void drawFieldLabel (juce::Graphics& g, juce::Rectangle<int> area, const juce::String& label)
+void drawFieldLabel (juce::Graphics& g, juce::Rectangle<int> area, const juce::String& label, bool enabled)
 {
-    g.setColour (dimText());
+    g.setColour (enabled ? dimText() : dimText().withAlpha (0.42f));
     g.setFont (13.0f);
     g.drawFittedText (label, area, juce::Justification::centredLeft, 1);
 }
@@ -126,6 +126,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     prevPageButton.onClick = [this] { setPage (page - 1); };
     nextPageButton.onClick = [this] { setPage (page + 1); };
     pageMapToggle.onClick = [this] { repaint(); };
+    midiKeyToggle.onClick = [this] { updateRootOctaveControls(); repaint(); };
     presetBox.onChange = [this] { loadSelectedPreset(); };
     savePresetButton.onClick = [this] { saveCurrentPreset(); };
 
@@ -155,6 +156,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     gateMultiplierAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "gateMultiplier", gateMultiplierSlider);
     midiKeyAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (parameters, "midiKey", midiKeyToggle);
 
+    updateRootOctaveControls();
     refreshPresetList();
 }
 
@@ -181,7 +183,7 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
     for (const auto& item : labelledControls)
     {
         auto labelArea = item.first->getBounds().translated (0, -18).withHeight (16);
-        drawFieldLabel (g, labelArea, item.second);
+        drawFieldLabel (g, labelArea, item.second, item.first->isEnabled());
     }
 
     drawStepGrid (g, gridBounds);
@@ -674,6 +676,13 @@ void PsytrancerAudioProcessorEditor::changeLengthBy (int amount)
     }
 }
 
+void PsytrancerAudioProcessorEditor::updateRootOctaveControls()
+{
+    const auto enabled = ! midiKeyToggle.getToggleState();
+    rootBox.setEnabled (enabled);
+    octaveSlider.setEnabled (enabled);
+}
+
 void PsytrancerAudioProcessorEditor::refreshPresetList (const juce::String& selectedName)
 {
     const juce::ScopedValueSetter<bool> scopedSetter (refreshingPresetList, true);
@@ -791,5 +800,6 @@ bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
 
 void PsytrancerAudioProcessorEditor::timerCallback()
 {
+    updateRootOctaveControls();
     repaint (gridBounds);
 }

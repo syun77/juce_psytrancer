@@ -45,6 +45,7 @@ private:
     void setSelectedStep (int step);
     void updatePageForSelection();
     void changeLengthBy (int amount);
+    void updateRootOctaveControls();
     void refreshPresetList (const juce::String& selectedName = {});
     void saveCurrentPreset();
     void loadSelectedPreset();
