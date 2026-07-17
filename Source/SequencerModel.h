@@ -13,6 +13,7 @@ enum class StepType
 
 struct StepData
 {
+    bool enabled = true;
     StepType type = StepType::gate;
     int relativePitch = 0;
     float gateRate = 1.0f;

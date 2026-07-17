@@ -319,7 +319,11 @@ void PsytrancerAudioProcessor::renderSequenceSegment (juce::MidiBuffer& generate
             step = steps[(size_t) stepIndex];
         }
 
-        if (step.type == StepType::gate || step.type == StepType::cut)
+        if (! step.enabled)
+        {
+            sendActiveNoteOff (generated, outputSample);
+        }
+        else if (step.type == StepType::gate || step.type == StepType::cut)
         {
             sendActiveNoteOff (generated, outputSample);
 
@@ -562,6 +566,7 @@ juce::ValueTree PsytrancerAudioProcessor::stepsToValueTree() const
         const auto& step = steps[(size_t) i];
         juce::ValueTree node { "STEP" };
         node.setProperty ("index", i, nullptr);
+        node.setProperty ("enabled", step.enabled, nullptr);
         node.setProperty ("type", stepTypeToString (step.type), nullptr);
         node.setProperty ("pitch", step.relativePitch, nullptr);
         node.setProperty ("gate", step.gateRate, nullptr);
@@ -583,6 +588,7 @@ void PsytrancerAudioProcessor::loadStepsFromValueTree (const juce::ValueTree& ro
     {
         const auto index = juce::jlimit (0, 127, (int) node.getProperty ("index", 0));
         auto& step = steps[(size_t) index];
+        step.enabled = (bool) node.getProperty ("enabled", true);
         step.type = stepTypeFromString (node.getProperty ("type", "gate").toString());
         step.relativePitch = juce::jlimit (-64, 64, (int) node.getProperty ("pitch", 0));
         step.gateRate = juce::jlimit (0.01f, 1.0f, (float) node.getProperty ("gate", 0.75f));

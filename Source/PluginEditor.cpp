@@ -311,10 +311,26 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
 
         auto step = processor.getStep (stepIndex);
         auto row = juce::Rectangle<int> (x, grid.getY(), cellWidth - 2, stepHeaderHeight);
+        const auto stepEnabled = step.enabled;
+        const auto valueTextColour = stepEnabled ? text() : text().withAlpha (0.38f);
+        const auto valueDimColour = stepEnabled ? dimText() : dimText().withAlpha (0.36f);
+        const auto accentColour = stepEnabled ? selected() : dimText().withAlpha (0.48f);
 
-        g.setColour (isSelected ? selected() : dimText());
+        if (! stepEnabled)
+        {
+            g.setColour (juce::Colours::black.withAlpha (0.22f));
+            g.fillRoundedRectangle (column.toFloat(), 5.0f);
+        }
+
+        g.setColour (isSelected ? accentColour : valueDimColour);
         g.setFont (13.0f);
         g.drawFittedText (juce::String (stepIndex + 1), row, juce::Justification::centred, 1);
+
+        if (stepIndex == hoverStep && isStepToggleRow (hoverRow))
+        {
+            g.setColour (selected().withAlpha (0.45f));
+            g.drawRoundedRectangle (row.reduced (4).toFloat(), 4.0f, 1.2f);
+        }
 
         auto drawRow = [&] (const juce::String& value, juce::Colour colour, int rowIndex)
         {
@@ -339,16 +355,17 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
 
         const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
         const auto sounded = step.type == StepType::gate || step.type == StepType::cut;
-        const auto muted = ! sounded;
+        const auto muted = ! sounded || ! stepEnabled;
         const auto displayedGateRate = step.type == StepType::cut ? step.gateRate * 0.1f : step.gateRate;
-        drawRow (step.type == StepType::hold ? "-" : step.type == StepType::rest ? "-" : juce::String (step.relativePitch),
-                 muted ? dimText() : text(), 0);
-        drawRow (sounded ? midiNoteName (note) : "-", muted ? dimText() : text(), 1);
-        drawRow (getStepTypeName (step.type), step.type == StepType::rest ? dimText() : selected(), 2);
-        drawRow (sounded ? juce::String (juce::roundToInt (displayedGateRate * 100.0f)) + "%" : "-",
-                 sounded ? text() : dimText(), 3);
-        drawRow (sounded ? juce::String ((int) step.velocity) : "-",
-                 sounded ? text() : dimText(), 4);
+
+        const auto showStoredValues = ! stepEnabled;
+        drawRow (showStoredValues || sounded ? juce::String (step.relativePitch) : "-", muted ? valueDimColour : valueTextColour, 0);
+        drawRow (showStoredValues || sounded ? midiNoteName (note) : "-", muted ? valueDimColour : valueTextColour, 1);
+        drawRow (getStepTypeName (step.type), step.type == StepType::rest || ! stepEnabled ? valueDimColour : accentColour, 2);
+        drawRow (showStoredValues || sounded ? juce::String (juce::roundToInt (displayedGateRate * 100.0f)) + "%" : "-",
+                 muted ? valueDimColour : valueTextColour, 3);
+        drawRow (showStoredValues || sounded ? juce::String ((int) step.velocity) : "-",
+                 muted ? valueDimColour : valueTextColour, 4);
 
         if (visible % 4 == 3)
         {
@@ -401,6 +418,8 @@ void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::
 
             if (stepIndex >= sequenceLength)
                 g.setColour (juce::Colours::black.withAlpha (0.45f));
+            else if (! step.enabled)
+                g.setColour (dimText().withAlpha (0.16f));
             else if (step.type == StepType::gate || step.type == StepType::cut)
                 g.setColour (selected());
             else if (step.type == StepType::hold)
@@ -549,7 +568,12 @@ void PsytrancerAudioProcessorEditor::editStepAt (juce::Point<int> position, bool
     auto stepData = processor.getStep (step);
     const auto rowIndex = getGridRowAtY (position.y);
 
-    if (rowIndex == 2)
+    if (isStepToggleRow (rowIndex))
+    {
+        stepData.enabled = ! stepData.enabled;
+        processor.setStep (step, stepData);
+    }
+    else if (rowIndex == 2)
     {
         stepData.type = stepData.type == StepType::gate ? StepType::cut
                       : stepData.type == StepType::cut ? StepType::hold
@@ -587,6 +611,11 @@ int PsytrancerAudioProcessorEditor::getGridRowAtY (int y) const
 bool PsytrancerAudioProcessorEditor::isPitchEditRow (int row) const
 {
     return row == 0 || row == 1;
+}
+
+bool PsytrancerAudioProcessorEditor::isStepToggleRow (int row) const
+{
+    return row == -1;
 }
 
 bool PsytrancerAudioProcessorEditor::isTypeEditRow (int row) const

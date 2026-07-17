@@ -33,6 +33,7 @@ private:
     void editStepAt (juce::Point<int> position, bool drag);
     int getStepAtX (int x) const;
     int getGridRowAtY (int y) const;
+    bool isStepToggleRow (int row) const;
     bool isPitchEditRow (int row) const;
     bool isTypeEditRow (int row) const;
     bool isGateEditRow (int row) const;
