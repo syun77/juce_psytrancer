@@ -26,12 +26,16 @@ private:
     void timerCallback() override;
     void configureControls();
     void drawStepGrid (juce::Graphics&, juce::Rectangle<int>);
+    void drawPageOverview (juce::Graphics&, juce::Rectangle<int>);
     void editStepAt (juce::Point<int> position, bool drag);
     int getStepAtX (int x) const;
     int getGridRowAtY (int y) const;
     bool isPitchEditRow (int row) const;
+    int getPageCount() const;
+    void setPage (int newPage);
     void setSelectedStep (int step);
     void updatePageForSelection();
+    void changeLengthBy (int amount);
 
     PsytrancerAudioProcessor& processor;
     juce::AudioProcessorValueTreeState& parameters;
@@ -41,6 +45,11 @@ private:
     MouseWheelComboBox scaleBox;
     juce::Slider lengthSlider;
     juce::Slider octaveSlider;
+    juce::TextButton lengthDownButton { "-16" };
+    juce::TextButton lengthUpButton { "+16" };
+    juce::TextButton prevPageButton { "<<" };
+    juce::TextButton nextPageButton { ">>" };
+    juce::ToggleButton pageMapToggle { "Map" };
     juce::TextButton initButton { "Init" };
     juce::TextButton repeatButton { "Repeat" };
     juce::TextButton shiftLeftButton { "<" };

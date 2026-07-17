@@ -89,12 +89,25 @@ void PsytrancerAudioProcessorEditor::configureControls()
     addSlider (lengthSlider);
     addSlider (octaveSlider);
 
-    for (auto* button : { &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
+    for (auto* button : { &lengthDownButton, &lengthUpButton, &prevPageButton, &nextPageButton,
+                          &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
     {
         addAndMakeVisible (*button);
         button->setColour (juce::TextButton::buttonColourId, cell());
         button->setColour (juce::TextButton::textColourOffId, text());
     }
+
+    addAndMakeVisible (pageMapToggle);
+    pageMapToggle.setToggleState (true, juce::dontSendNotification);
+    pageMapToggle.setColour (juce::ToggleButton::textColourId, text());
+    pageMapToggle.setColour (juce::ToggleButton::tickColourId, selected());
+    pageMapToggle.setColour (juce::ToggleButton::tickDisabledColourId, dimText());
+
+    lengthDownButton.onClick = [this] { changeLengthBy (-visibleSteps); };
+    lengthUpButton.onClick = [this] { changeLengthBy (visibleSteps); };
+    prevPageButton.onClick = [this] { setPage (page - 1); };
+    nextPageButton.onClick = [this] { setPage (page + 1); };
+    pageMapToggle.onClick = [this] { repaint(); };
 
     initButton.onClick = [this]
     {
@@ -151,38 +164,58 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
     auto footer = getLocalBounds().removeFromBottom (footerHeight).reduced (16, 6);
     g.setColour (panel());
     g.fillRoundedRectangle (footer.toFloat(), 6.0f);
+
+    const auto overviewWidth = pageMapToggle.getToggleState() ? 252 : 0;
+    auto overview = overviewWidth > 0 ? footer.removeFromRight (overviewWidth).reduced (8, 3)
+                                      : juce::Rectangle<int>();
+
     g.setColour (dimText());
     g.setFont (14.0f);
-    g.drawFittedText ("Page " + juce::String (page + 1) + "/8   Selected Step "
+    g.drawFittedText ("Page " + juce::String (page + 1) + "/" + juce::String (getPageCount()) + "   Selected Step "
                           + juce::String (selectedStep + 1)
-                          + "   Use arrows, Space, G/H/R, +/- gate, [/] velocity",
+                          + "   Length +/-16, Page << >>, Space, G/H/R",
                       footer.reduced (12, 0), juce::Justification::centredLeft, 1);
+
+    if (! overview.isEmpty())
+        drawPageOverview (g, overview);
 }
 
 void PsytrancerAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (16);
     auto top = area.removeFromTop (headerHeight - 16);
-    top.removeFromLeft (250);
+    top.removeFromLeft (210);
 
     auto row1 = top.removeFromTop (34);
     auto setControl = [] (juce::Rectangle<int>& row, juce::Component& control, int controlWidth)
     {
         control.setBounds (row.removeFromLeft (controlWidth).reduced (3, 4));
-        row.removeFromLeft (16);
+        row.removeFromLeft (10);
     };
 
-    setControl (row1, lengthSlider, 118);
-    setControl (row1, resolutionBox, 96);
-    setControl (row1, rootBox, 82);
-    setControl (row1, octaveSlider, 96);
-    setControl (row1, scaleBox, 170);
+    setControl (row1, lengthSlider, 112);
+    setControl (row1, lengthDownButton, 44);
+    setControl (row1, lengthUpButton, 44);
+    setControl (row1, resolutionBox, 86);
+    setControl (row1, rootBox, 70);
+    setControl (row1, octaveSlider, 86);
+    setControl (row1, scaleBox, 150);
 
     auto row2 = top.removeFromTop (34);
+    prevPageButton.setBounds (row2.removeFromLeft (46).reduced (3, 4));
+    row2.removeFromLeft (10);
+    nextPageButton.setBounds (row2.removeFromLeft (46).reduced (3, 4));
+    row2.removeFromLeft (10);
+    pageMapToggle.setBounds (row2.removeFromLeft (74).reduced (3, 2));
+    row2.removeFromLeft (14);
     initButton.setBounds (row2.removeFromLeft (70).reduced (3, 4));
+    row2.removeFromLeft (10);
     repeatButton.setBounds (row2.removeFromLeft (86).reduced (3, 4));
+    row2.removeFromLeft (10);
     shiftLeftButton.setBounds (row2.removeFromLeft (44).reduced (3, 4));
+    row2.removeFromLeft (6);
     shiftRightButton.setBounds (row2.removeFromLeft (44).reduced (3, 4));
+    row2.removeFromLeft (10);
     panicButton.setBounds (row2.removeFromLeft (80).reduced (3, 4));
 
     area.removeFromBottom (footerHeight);
@@ -273,6 +306,61 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
         {
             g.setColour (juce::Colours::white.withAlpha (0.12f));
             g.fillRect (x + cellWidth - 2, grid.getY(), 1, grid.getHeight());
+        }
+    }
+}
+
+void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    const auto sequenceLength = processor.getSequenceLength();
+    const auto pageCount = getPageCount();
+    const auto playStep = processor.getCurrentStep();
+
+    g.setColour (dimText());
+    g.setFont (11.0f);
+    g.drawFittedText ("Page " + juce::String (page + 1) + "/" + juce::String (pageCount),
+                      bounds.removeFromTop (12), juce::Justification::centredLeft, 1);
+
+    const auto pageGap = 4;
+    const auto pageWidth = juce::jmax (18, (bounds.getWidth() - pageGap * 7) / 8);
+    auto pages = bounds.reduced (0, 1);
+
+    for (auto pageIndex = 0; pageIndex < 8; ++pageIndex)
+    {
+        auto pageArea = pages.removeFromLeft (pageWidth);
+        pages.removeFromLeft (pageGap);
+
+        const auto pageActive = pageIndex < pageCount;
+        const auto pagePlaying = playStep >= pageIndex * visibleSteps && playStep < (pageIndex + 1) * visibleSteps;
+        const auto outline = pageIndex == page ? selected() : pagePlaying ? playhead() : juce::Colour (0xff3b424c);
+
+        g.setColour (pageActive ? cell() : juce::Colours::black.withAlpha (0.25f));
+        g.fillRoundedRectangle (pageArea.toFloat(), 3.0f);
+        g.setColour (outline);
+        g.drawRoundedRectangle (pageArea.toFloat().reduced (0.5f), 3.0f, pageIndex == page || pagePlaying ? 1.5f : 1.0f);
+
+        auto stepsArea = pageArea.reduced (3, 4);
+        const auto tickWidth = juce::jmax (1, stepsArea.getWidth() / visibleSteps);
+
+        for (auto stepOffset = 0; stepOffset < visibleSteps; ++stepOffset)
+        {
+            const auto stepIndex = pageIndex * visibleSteps + stepOffset;
+            const auto step = processor.getStep (stepIndex);
+            auto tick = juce::Rectangle<int> (stepsArea.getX() + stepOffset * tickWidth,
+                                              stepsArea.getY(),
+                                              juce::jmax (1, tickWidth - 1),
+                                              stepsArea.getHeight());
+
+            if (stepIndex >= sequenceLength)
+                g.setColour (juce::Colours::black.withAlpha (0.45f));
+            else if (step.type == StepType::gate)
+                g.setColour (selected());
+            else if (step.type == StepType::hold)
+                g.setColour (selected().withAlpha (0.45f));
+            else
+                g.setColour (dimText().withAlpha (0.24f));
+
+            g.fillRect (tick);
         }
     }
 }
@@ -391,15 +479,44 @@ bool PsytrancerAudioProcessorEditor::isPitchEditRow (int row) const
     return row == 0 || row == 1;
 }
 
+int PsytrancerAudioProcessorEditor::getPageCount() const
+{
+    return juce::jlimit (1, 8, (processor.getSequenceLength() + visibleSteps - 1) / visibleSteps);
+}
+
+void PsytrancerAudioProcessorEditor::setPage (int newPage)
+{
+    page = juce::jlimit (0, getPageCount() - 1, newPage);
+    const auto offset = selectedStep % visibleSteps;
+    const auto maxStep = processor.getSequenceLength() - 1;
+    selectedStep = juce::jlimit (0, maxStep, page * visibleSteps + offset);
+    repaint();
+}
+
 void PsytrancerAudioProcessorEditor::setSelectedStep (int step)
 {
-    selectedStep = juce::jlimit (0, 127, step);
+    selectedStep = juce::jlimit (0, processor.getSequenceLength() - 1, step);
     updatePageForSelection();
 }
 
 void PsytrancerAudioProcessorEditor::updatePageForSelection()
 {
-    page = juce::jlimit (0, 7, selectedStep / visibleSteps);
+    page = juce::jlimit (0, getPageCount() - 1, selectedStep / visibleSteps);
+}
+
+void PsytrancerAudioProcessorEditor::changeLengthBy (int amount)
+{
+    if (auto* parameter = parameters.getParameter ("length"))
+    {
+        const auto newLength = juce::jlimit (1, 128, processor.getSequenceLength() + amount);
+        parameter->beginChangeGesture();
+        parameter->setValueNotifyingHost (parameter->convertTo0to1 ((float) newLength));
+        parameter->endChangeGesture();
+
+        selectedStep = juce::jlimit (0, newLength - 1, selectedStep);
+        updatePageForSelection();
+        repaint();
+    }
 }
 
 bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
