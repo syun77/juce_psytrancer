@@ -46,6 +46,7 @@ public:
     ScaleType getScaleType() const;
     StepResolution getResolution() const;
     int getSequenceLength() const;
+    float getGateMultiplier() const;
 
     juce::File getPresetDirectory() const;
     juce::StringArray getPresetNames() const;

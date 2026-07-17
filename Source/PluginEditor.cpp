@@ -2,7 +2,7 @@
 
 namespace
 {
-constexpr auto headerHeight = 78;
+constexpr auto headerHeight = 96;
 constexpr auto footerHeight = 44;
 constexpr auto stepHeaderHeight = 30;
 constexpr auto rowHeight = 58;
@@ -45,7 +45,7 @@ void MouseWheelComboBox::mouseWheelMove (const juce::MouseEvent&, const juce::Mo
 PsytrancerAudioProcessorEditor::PsytrancerAudioProcessorEditor (PsytrancerAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p), parameters (p.getParameters())
 {
-    setSize (1080, 430);
+    setSize (1080, 450);
     setResizable (true, true);
     setWantsKeyboardFocus (true);
     configureControls();
@@ -92,6 +92,16 @@ void PsytrancerAudioProcessorEditor::configureControls()
     addSlider (lengthSlider);
     addSlider (octaveSlider);
 
+    addAndMakeVisible (gateMultiplierSlider);
+    gateMultiplierSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    gateMultiplierSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 58, 20);
+    gateMultiplierSlider.setColour (juce::Slider::rotarySliderFillColourId, selected());
+    gateMultiplierSlider.setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colour (0xff3b424c));
+    gateMultiplierSlider.setColour (juce::Slider::thumbColourId, text());
+    gateMultiplierSlider.setColour (juce::Slider::textBoxTextColourId, text());
+    gateMultiplierSlider.setColour (juce::Slider::textBoxBackgroundColourId, background());
+    gateMultiplierSlider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
+
     for (auto* button : { &lengthDownButton, &lengthUpButton, &prevPageButton, &nextPageButton, &savePresetButton,
                           &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
     {
@@ -137,6 +147,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     scaleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "scale", scaleBox);
     lengthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "length", lengthSlider);
     octaveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "octave", octaveSlider);
+    gateMultiplierAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "gateMultiplier", gateMultiplierSlider);
 
     refreshPresetList();
 }
@@ -152,11 +163,12 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (juce::FontOptions (26.0f, juce::Font::bold));
     g.drawFittedText ("Psytrancer", header.removeFromLeft (240), juce::Justification::centredLeft, 1);
 
-    const std::array<std::pair<juce::Component*, const char*>, 5> labelledControls {{
+    const std::array<std::pair<juce::Component*, const char*>, 6> labelledControls {{
         { &lengthSlider, "Length" },
         { &resolutionBox, "Rate" },
         { &rootBox, "Root" },
         { &octaveSlider, "Octave" },
+        { &gateMultiplierSlider, "Gate Mult" },
         { &scaleBox, "Scale" }
     }};
 
@@ -193,7 +205,7 @@ void PsytrancerAudioProcessorEditor::resized()
     auto top = area.removeFromTop (headerHeight - 16);
     top.removeFromLeft (190);
 
-    auto row1 = top.removeFromTop (34);
+    auto row1 = top.removeFromTop (52);
     auto setControl = [] (juce::Rectangle<int>& row, juce::Component& control, int controlWidth)
     {
         control.setBounds (row.removeFromLeft (controlWidth).reduced (3, 4));
@@ -206,6 +218,8 @@ void PsytrancerAudioProcessorEditor::resized()
     setControl (row1, resolutionBox, 86);
     setControl (row1, rootBox, 70);
     setControl (row1, octaveSlider, 86);
+    gateMultiplierSlider.setBounds (row1.removeFromLeft (82).reduced (8, 0));
+    row1.removeFromLeft (8);
     setControl (row1, scaleBox, 150);
 
     auto row2 = top.removeFromTop (34);

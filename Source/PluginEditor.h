@@ -48,6 +48,7 @@ private:
     MouseWheelComboBox scaleBox;
     juce::Slider lengthSlider;
     juce::Slider octaveSlider;
+    juce::Slider gateMultiplierSlider;
     juce::TextButton lengthDownButton { "-16" };
     juce::TextButton lengthUpButton { "+16" };
     juce::TextButton prevPageButton { "<<" };
@@ -66,6 +67,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> scaleAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lengthAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> octaveAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gateMultiplierAttachment;
 
     int selectedStep = 0;
     int page = 0;

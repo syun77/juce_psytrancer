@@ -103,6 +103,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout PsytrancerAudioProcessor::cr
     params.push_back (std::make_unique<juce::AudioParameterInt> (
         juce::ParameterID { "octave", 1 }, "Octave", 0, 8, 4));
 
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID { "gateMultiplier", 1 }, "Gate Mult",
+        juce::NormalisableRange<float> { 0.01f, 2.0f, 0.01f }, 1.0f,
+        juce::AudioParameterFloatAttributes()
+            .withStringFromValueFunction ([] (float value, int)
+            {
+                return juce::String (juce::roundToInt (value * 100.0f)) + "%";
+            })
+            .withValueFromStringFunction ([] (const juce::String& text)
+            {
+                return text.retainCharacters ("0123456789.").getFloatValue() / 100.0f;
+            })));
+
     juce::StringArray scaleNames;
     for (const auto& scale : getScaleDefinitions())
         scaleNames.add (scale.name);
@@ -200,6 +213,7 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
 
     const auto baseNote = getBaseRootMidiNote();
     const auto scale = getScaleDefinition (getScaleType());
+    const auto gateMultiplier = getGateMultiplier();
 
     for (auto absoluteStep = firstStep; absoluteStep <= lastStep; ++absoluteStep)
     {
@@ -222,7 +236,8 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
             const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
             activeNote = note;
             activeChannel = 1;
-            pendingNoteOffPpq = boundaryPpq + stepLengthPpq * juce::jlimit (0.01f, 1.0f, step.gateRate);
+            const auto effectiveGateRate = juce::jlimit (0.01f, 1.0f, step.gateRate * gateMultiplier);
+            pendingNoteOffPpq = boundaryPpq + stepLengthPpq * effectiveGateRate;
             generated.addEvent (juce::MidiMessage::noteOn (activeChannel, note, (juce::uint8) step.velocity), sampleOffset);
         }
         else if (step.type == StepType::rest)
@@ -369,6 +384,11 @@ StepResolution PsytrancerAudioProcessor::getResolution() const
 int PsytrancerAudioProcessor::getSequenceLength() const
 {
     return juce::jlimit (1, 128, (int) *parameters.getRawParameterValue ("length"));
+}
+
+float PsytrancerAudioProcessor::getGateMultiplier() const
+{
+    return juce::jlimit (0.01f, 2.0f, parameters.getRawParameterValue ("gateMultiplier")->load());
 }
 
 juce::File PsytrancerAudioProcessor::getPresetDirectory() const
