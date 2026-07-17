@@ -64,6 +64,8 @@ private:
     void loadStepsFromValueTree (const juce::ValueTree&);
     juce::ValueTree createStateValueTree();
     void loadStateValueTree (const juce::ValueTree&);
+    void renderSequenceSegment (juce::MidiBuffer&, int segmentStart, int segmentLength,
+                                double ppq, double bpm, int baseNote);
     void sendActiveNoteOff (juce::MidiBuffer&, int sampleOffset);
     void resetTransportState();
 
@@ -73,11 +75,15 @@ private:
 
     double currentSampleRate = 44100.0;
     double previousPpq = 0.0;
+    double triggerPpq = 0.0;
     double pendingNoteOffPpq = -1.0;
     int activeNote = -1;
     int activeChannel = 1;
+    int triggerNote = -1;
+    int triggerChannel = 1;
     std::atomic<int> currentStep { -1 };
     std::atomic<int> midiKeyNote { -1 };
+    bool midiTriggerActive = false;
     bool wasPlaying = false;
     std::atomic<bool> panicRequested { false };
 

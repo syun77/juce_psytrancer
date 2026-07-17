@@ -104,7 +104,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PsytrancerAudioProcessor::cr
         juce::ParameterID { "octave", 1 }, "Octave", 0, 8, 4));
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (
-        juce::ParameterID { "midiKey", 1 }, "MIDI Key", false));
+        juce::ParameterID { "midiKey", 1 }, "MIDI Key", true));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID { "gateMultiplier", 1 }, "Gate Mult",
@@ -167,22 +167,13 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
 
     juce::MidiBuffer generated;
 
-    if (isMidiKeyEnabled())
-    {
-        for (const auto metadata : midi)
-        {
-            const auto message = metadata.getMessage();
-
-            if (message.isNoteOn())
-                midiKeyNote.store (message.getNoteNumber());
-        }
-    }
-
     if (panicRequested.exchange (false))
     {
         sendActiveNoteOff (generated, 0);
         generated.addEvent (juce::MidiMessage::allNotesOff (activeChannel), 0);
         generated.addEvent (juce::MidiMessage::allSoundOff (activeChannel), 0);
+        midiTriggerActive = false;
+        triggerNote = -1;
     }
 
     auto* hostPlayHead = getPlayHead();
@@ -198,26 +189,107 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
         if (wasPlaying)
             sendActiveNoteOff (generated, 0);
 
-        resetTransportState();
+        wasPlaying = false;
+
+        auto segmentStart = 0;
+
+        for (const auto metadata : midi)
+        {
+            const auto message = metadata.getMessage();
+            const auto eventSample = juce::jlimit (0, numSamples, metadata.samplePosition);
+
+            if (midiTriggerActive && eventSample > segmentStart)
+            {
+                renderSequenceSegment (generated, segmentStart, eventSample - segmentStart,
+                                       triggerPpq, bpm, getBaseRootMidiNote());
+                triggerPpq += (double) (eventSample - segmentStart) / (currentSampleRate * 60.0 / bpm);
+            }
+
+            if (message.isNoteOn())
+            {
+                midiKeyNote.store (message.getNoteNumber());
+                sendActiveNoteOff (generated, eventSample);
+                midiTriggerActive = true;
+                triggerNote = message.getNoteNumber();
+                triggerChannel = message.getChannel();
+                activeChannel = triggerChannel;
+                triggerPpq = 0.0;
+                currentStep.store (-1);
+            }
+            else if (message.isNoteOff() && midiTriggerActive
+                     && message.getNoteNumber() == triggerNote
+                     && message.getChannel() == triggerChannel)
+            {
+                sendActiveNoteOff (generated, eventSample);
+                midiTriggerActive = false;
+                triggerNote = -1;
+                pendingNoteOffPpq = -1.0;
+                currentStep.store (-1);
+            }
+
+            segmentStart = eventSample;
+        }
+
+        if (midiTriggerActive && segmentStart < numSamples)
+        {
+            renderSequenceSegment (generated, segmentStart, numSamples - segmentStart,
+                                   triggerPpq, bpm, getBaseRootMidiNote());
+            triggerPpq += (double) (numSamples - segmentStart) / (currentSampleRate * 60.0 / bpm);
+        }
+
         midi.swapWith (generated);
         return;
     }
 
+    if (isMidiKeyEnabled())
+    {
+        for (const auto metadata : midi)
+        {
+            const auto message = metadata.getMessage();
+
+            if (message.isNoteOn())
+                midiKeyNote.store (message.getNoteNumber());
+        }
+    }
+
+    if (midiTriggerActive)
+    {
+        sendActiveNoteOff (generated, 0);
+        midiTriggerActive = false;
+        triggerNote = -1;
+        triggerPpq = 0.0;
+    }
+
     const auto quarterNoteSamples = currentSampleRate * 60.0 / bpm;
     const auto blockLengthPpq = (double) numSamples / quarterNoteSamples;
-    const auto blockEndPpq = ppq + blockLengthPpq;
     const auto expectedPpq = previousPpq + blockLengthPpq;
 
     if (wasPlaying && (ppq + 0.0001 < previousPpq || std::abs (ppq - expectedPpq) > 0.25))
         sendActiveNoteOff (generated, 0);
 
     wasPlaying = true;
+    activeChannel = 1;
+    renderSequenceSegment (generated, 0, numSamples, ppq, bpm, getBaseRootMidiNote());
+    previousPpq = ppq;
+    midi.swapWith (generated);
+}
+
+void PsytrancerAudioProcessor::renderSequenceSegment (juce::MidiBuffer& generated, int segmentStart,
+                                                      int segmentLength, double ppq, double bpm,
+                                                      int baseNote)
+{
+    if (segmentLength <= 0 || bpm <= 0.0)
+        return;
+
+    const auto quarterNoteSamples = currentSampleRate * 60.0 / bpm;
+    const auto blockEndPpq = ppq + (double) segmentLength / quarterNoteSamples;
+    const auto numSamples = segmentLength;
 
     if (pendingNoteOffPpq >= ppq && pendingNoteOffPpq < blockEndPpq)
     {
         const auto sampleOffset = juce::jlimit (0, numSamples - 1,
                                                 (int) std::round ((pendingNoteOffPpq - ppq) * quarterNoteSamples));
-        sendActiveNoteOff (generated, sampleOffset);
+        sendActiveNoteOff (generated, segmentStart + sampleOffset);
     }
 
     const auto stepLengthPpq = getStepLengthPpq (getResolution());
@@ -225,7 +297,6 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
     auto firstStep = (int64_t) std::ceil ((ppq - 1.0e-9) / stepLengthPpq);
     auto lastStep = (int64_t) std::floor ((blockEndPpq - 1.0e-9) / stepLengthPpq);
 
-    const auto baseNote = getBaseRootMidiNote();
     const auto scale = getScaleDefinition (getScaleType());
     const auto gateMultiplier = getGateMultiplier();
 
@@ -234,6 +305,7 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
         const auto boundaryPpq = (double) absoluteStep * stepLengthPpq;
         const auto sampleOffset = juce::jlimit (0, numSamples - 1,
                                                 (int) std::round ((boundaryPpq - ppq) * quarterNoteSamples));
+        const auto outputSample = segmentStart + sampleOffset;
         const auto stepIndex = positiveModulo ((int) absoluteStep, sequenceLength);
         currentStep.store (stepIndex);
 
@@ -245,18 +317,17 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
 
         if (step.type == StepType::gate)
         {
-            sendActiveNoteOff (generated, sampleOffset);
+            sendActiveNoteOff (generated, outputSample);
 
             const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
             activeNote = note;
-            activeChannel = 1;
             const auto effectiveGateRate = juce::jlimit (0.01f, 1.0f, step.gateRate * gateMultiplier);
             pendingNoteOffPpq = boundaryPpq + stepLengthPpq * effectiveGateRate;
-            generated.addEvent (juce::MidiMessage::noteOn (activeChannel, note, (juce::uint8) step.velocity), sampleOffset);
+            generated.addEvent (juce::MidiMessage::noteOn (activeChannel, note, (juce::uint8) step.velocity), outputSample);
         }
         else if (step.type == StepType::rest)
         {
-            sendActiveNoteOff (generated, sampleOffset);
+            sendActiveNoteOff (generated, outputSample);
         }
     }
 
@@ -264,11 +335,8 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
     {
         const auto sampleOffset = juce::jlimit (0, numSamples - 1,
                                                 (int) std::round ((pendingNoteOffPpq - ppq) * quarterNoteSamples));
-        sendActiveNoteOff (generated, sampleOffset);
+        sendActiveNoteOff (generated, segmentStart + sampleOffset);
     }
-
-    previousPpq = ppq;
-    midi.swapWith (generated);
 }
 
 void PsytrancerAudioProcessor::sendActiveNoteOff (juce::MidiBuffer& midi, int sampleOffset)
@@ -283,8 +351,11 @@ void PsytrancerAudioProcessor::sendActiveNoteOff (juce::MidiBuffer& midi, int sa
 void PsytrancerAudioProcessor::resetTransportState()
 {
     previousPpq = 0.0;
+    triggerPpq = 0.0;
     pendingNoteOffPpq = -1.0;
     activeNote = -1;
+    triggerNote = -1;
+    midiTriggerActive = false;
     currentStep.store (-1);
     wasPlaying = false;
 }

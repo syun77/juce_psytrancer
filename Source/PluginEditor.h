@@ -19,6 +19,9 @@ public:
     void resized() override;
     void mouseDown (const juce::MouseEvent&) override;
     void mouseDrag (const juce::MouseEvent&) override;
+    void mouseUp (const juce::MouseEvent&) override;
+    void mouseMove (const juce::MouseEvent&) override;
+    void mouseExit (const juce::MouseEvent&) override;
     void mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
     bool keyPressed (const juce::KeyPress&) override;
 
@@ -31,6 +34,9 @@ private:
     int getStepAtX (int x) const;
     int getGridRowAtY (int y) const;
     bool isPitchEditRow (int row) const;
+    bool isGateEditRow (int row) const;
+    bool isVelocityEditRow (int row) const;
+    bool isEditableValueRow (int row) const;
     int getPageCount() const;
     void setPage (int newPage);
     void setSelectedStep (int step);
@@ -78,6 +84,10 @@ private:
     int dragRow = -1;
     int dragStartY = 0;
     int dragStartPitch = 0;
+    float dragStartGate = 0.75f;
+    juce::uint8 dragStartVelocity = 100;
+    int hoverStep = -1;
+    int hoverRow = -1;
     bool refreshingPresetList = false;
     juce::Rectangle<int> gridBounds;
 
