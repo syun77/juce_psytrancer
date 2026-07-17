@@ -47,6 +47,11 @@ public:
     StepResolution getResolution() const;
     int getSequenceLength() const;
 
+    juce::File getPresetDirectory() const;
+    juce::StringArray getPresetNames() const;
+    bool savePreset (const juce::String& name);
+    bool loadPreset (const juce::String& name);
+
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
 private:
@@ -55,6 +60,8 @@ private:
 
     juce::ValueTree stepsToValueTree() const;
     void loadStepsFromValueTree (const juce::ValueTree&);
+    juce::ValueTree createStateValueTree();
+    void loadStateValueTree (const juce::ValueTree&);
     void sendActiveNoteOff (juce::MidiBuffer&, int sampleOffset);
     void resetTransportState();
 

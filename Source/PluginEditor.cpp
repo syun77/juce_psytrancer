@@ -45,7 +45,7 @@ void MouseWheelComboBox::mouseWheelMove (const juce::MouseEvent&, const juce::Mo
 PsytrancerAudioProcessorEditor::PsytrancerAudioProcessorEditor (PsytrancerAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p), parameters (p.getParameters())
 {
-    setSize (940, 430);
+    setSize (1080, 430);
     setResizable (true, true);
     setWantsKeyboardFocus (true);
     configureControls();
@@ -66,6 +66,9 @@ void PsytrancerAudioProcessorEditor::configureControls()
     addCombo (resolutionBox);
     addCombo (rootBox);
     addCombo (scaleBox);
+    addCombo (presetBox);
+    presetBox.setEditableText (true);
+    presetBox.setTextWhenNothingSelected ("Preset");
 
     setComboItems (resolutionBox, { "1/4", "1/8", "1/16", "1/32", "1/64", "1/8T", "1/16T", "1/32T", "1/8D", "1/16D" });
     setComboItems (rootBox, { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" });
@@ -89,7 +92,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     addSlider (lengthSlider);
     addSlider (octaveSlider);
 
-    for (auto* button : { &lengthDownButton, &lengthUpButton, &prevPageButton, &nextPageButton,
+    for (auto* button : { &lengthDownButton, &lengthUpButton, &prevPageButton, &nextPageButton, &savePresetButton,
                           &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
     {
         addAndMakeVisible (*button);
@@ -108,6 +111,8 @@ void PsytrancerAudioProcessorEditor::configureControls()
     prevPageButton.onClick = [this] { setPage (page - 1); };
     nextPageButton.onClick = [this] { setPage (page + 1); };
     pageMapToggle.onClick = [this] { repaint(); };
+    presetBox.onChange = [this] { loadSelectedPreset(); };
+    savePresetButton.onClick = [this] { saveCurrentPreset(); };
 
     initButton.onClick = [this]
     {
@@ -132,6 +137,8 @@ void PsytrancerAudioProcessorEditor::configureControls()
     scaleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "scale", scaleBox);
     lengthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "length", lengthSlider);
     octaveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "octave", octaveSlider);
+
+    refreshPresetList();
 }
 
 void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
@@ -184,7 +191,7 @@ void PsytrancerAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (16);
     auto top = area.removeFromTop (headerHeight - 16);
-    top.removeFromLeft (210);
+    top.removeFromLeft (190);
 
     auto row1 = top.removeFromTop (34);
     auto setControl = [] (juce::Rectangle<int>& row, juce::Component& control, int controlWidth)
@@ -217,6 +224,10 @@ void PsytrancerAudioProcessorEditor::resized()
     shiftRightButton.setBounds (row2.removeFromLeft (44).reduced (3, 4));
     row2.removeFromLeft (10);
     panicButton.setBounds (row2.removeFromLeft (80).reduced (3, 4));
+    row2.removeFromLeft (14);
+    presetBox.setBounds (row2.removeFromLeft (160).reduced (3, 4));
+    row2.removeFromLeft (8);
+    savePresetButton.setBounds (row2.removeFromLeft (62).reduced (3, 4));
 
     area.removeFromBottom (footerHeight);
     gridBounds = area.reduced (0, 8);
@@ -514,6 +525,45 @@ void PsytrancerAudioProcessorEditor::changeLengthBy (int amount)
         parameter->endChangeGesture();
 
         selectedStep = juce::jlimit (0, newLength - 1, selectedStep);
+        updatePageForSelection();
+        repaint();
+    }
+}
+
+void PsytrancerAudioProcessorEditor::refreshPresetList (const juce::String& selectedName)
+{
+    const juce::ScopedValueSetter<bool> scopedSetter (refreshingPresetList, true);
+    const auto currentText = selectedName.isNotEmpty() ? selectedName : presetBox.getText();
+    const auto names = processor.getPresetNames();
+
+    presetBox.clear (juce::dontSendNotification);
+
+    for (auto i = 0; i < names.size(); ++i)
+        presetBox.addItem (names[i], i + 1);
+
+    if (currentText.isNotEmpty())
+        presetBox.setText (currentText, juce::dontSendNotification);
+}
+
+void PsytrancerAudioProcessorEditor::saveCurrentPreset()
+{
+    const auto presetName = presetBox.getText().trim();
+
+    if (presetName.isEmpty())
+        return;
+
+    if (processor.savePreset (presetName))
+        refreshPresetList (presetName);
+}
+
+void PsytrancerAudioProcessorEditor::loadSelectedPreset()
+{
+    if (refreshingPresetList || presetBox.getSelectedId() <= 0)
+        return;
+
+    if (processor.loadPreset (presetBox.getText()))
+    {
+        selectedStep = juce::jlimit (0, processor.getSequenceLength() - 1, selectedStep);
         updatePageForSelection();
         repaint();
     }

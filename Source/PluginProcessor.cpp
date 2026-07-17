@@ -65,6 +65,16 @@ juce::ValueTree getStepStateFromRoot (const juce::ValueTree& root)
 
     return root.getChildWithName ("STEPS");
 }
+
+juce::String sanitisePresetName (const juce::String& name)
+{
+    auto result = juce::File::createLegalFileName (name.trim());
+
+    if (result.endsWithIgnoreCase (".psytrancerpreset"))
+        result = result.upToLastOccurrenceOf (".psytrancerpreset", false, true);
+
+    return result.isNotEmpty() ? result : "Untitled";
+}
 }
 
 PsytrancerAudioProcessor::PsytrancerAudioProcessor()
@@ -361,6 +371,63 @@ int PsytrancerAudioProcessor::getSequenceLength() const
     return juce::jlimit (1, 128, (int) *parameters.getRawParameterValue ("length"));
 }
 
+juce::File PsytrancerAudioProcessor::getPresetDirectory() const
+{
+    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
+        .getChildFile ("Psytrancer")
+        .getChildFile ("Presets");
+}
+
+juce::StringArray PsytrancerAudioProcessor::getPresetNames() const
+{
+    juce::StringArray names;
+    const auto directory = getPresetDirectory();
+
+    for (const auto& file : directory.findChildFiles (juce::File::findFiles, false, "*.psytrancerpreset"))
+        names.add (file.getFileNameWithoutExtension());
+
+    names.sort (true);
+    return names;
+}
+
+bool PsytrancerAudioProcessor::savePreset (const juce::String& name)
+{
+    const auto presetName = sanitisePresetName (name);
+    const auto directory = getPresetDirectory();
+
+    if (! directory.createDirectory())
+        return false;
+
+    const auto file = directory.getChildFile (presetName + ".psytrancerpreset");
+
+    if (auto xml = createStateValueTree().createXml())
+        return xml->writeTo (file);
+
+    return false;
+}
+
+bool PsytrancerAudioProcessor::loadPreset (const juce::String& name)
+{
+    const auto file = getPresetDirectory().getChildFile (sanitisePresetName (name) + ".psytrancerpreset");
+
+    if (! file.existsAsFile())
+        return false;
+
+    auto xml = juce::XmlDocument::parse (file);
+
+    if (xml == nullptr)
+        return false;
+
+    const auto state = juce::ValueTree::fromXml (*xml);
+
+    if (! state.isValid())
+        return false;
+
+    loadStateValueTree (state);
+    panic();
+    return true;
+}
+
 juce::ValueTree PsytrancerAudioProcessor::stepsToValueTree() const
 {
     juce::ValueTree root { "STEPS" };
@@ -399,12 +466,23 @@ void PsytrancerAudioProcessor::loadStepsFromValueTree (const juce::ValueTree& ro
     }
 }
 
-void PsytrancerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+juce::ValueTree PsytrancerAudioProcessor::createStateValueTree()
 {
     juce::ValueTree state { "PSYTRANCER_STATE" };
     state.appendChild (makeParameterOnlyState (parameters.copyState()), nullptr);
     state.appendChild (stepsToValueTree(), nullptr);
+    return state;
+}
 
+void PsytrancerAudioProcessor::loadStateValueTree (const juce::ValueTree& state)
+{
+    parameters.replaceState (makeParameterOnlyState (getParameterStateFromRoot (state)));
+    loadStepsFromValueTree (getStepStateFromRoot (state));
+}
+
+void PsytrancerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+{
+    auto state = createStateValueTree();
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
     copyXmlToBinary (*xml, destData);
 }
@@ -421,8 +499,7 @@ void PsytrancerAudioProcessor::setStateInformation (const void* data, int sizeIn
     if (! state.isValid())
         return;
 
-    parameters.replaceState (makeParameterOnlyState (getParameterStateFromRoot (state)));
-    loadStepsFromValueTree (getStepStateFromRoot (state));
+    loadStateValueTree (state);
     panic();
 }
 

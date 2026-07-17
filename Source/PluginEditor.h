@@ -36,6 +36,9 @@ private:
     void setSelectedStep (int step);
     void updatePageForSelection();
     void changeLengthBy (int amount);
+    void refreshPresetList (const juce::String& selectedName = {});
+    void saveCurrentPreset();
+    void loadSelectedPreset();
 
     PsytrancerAudioProcessor& processor;
     juce::AudioProcessorValueTreeState& parameters;
@@ -50,6 +53,8 @@ private:
     juce::TextButton prevPageButton { "<<" };
     juce::TextButton nextPageButton { ">>" };
     juce::ToggleButton pageMapToggle { "Map" };
+    juce::ComboBox presetBox;
+    juce::TextButton savePresetButton { "Save" };
     juce::TextButton initButton { "Init" };
     juce::TextButton repeatButton { "Repeat" };
     juce::TextButton shiftLeftButton { "<" };
@@ -69,6 +74,7 @@ private:
     int dragRow = -1;
     int dragStartY = 0;
     int dragStartPitch = 0;
+    bool refreshingPresetList = false;
     juce::Rectangle<int> gridBounds;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PsytrancerAudioProcessorEditor)
