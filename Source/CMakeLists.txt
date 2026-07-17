@@ -34,3 +34,20 @@ target_link_libraries(Psytrancer
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+set(PSYTRANCER_VST3_COPY_DIR "/Users/syun77/Library/Audio/Plug-Ins/VST3"
+    CACHE PATH "Directory where Psytrancer.vst3 is copied after building")
+
+option(PSYTRANCER_COPY_VST3_AFTER_BUILD
+    "Copy Psytrancer.vst3 to the configured VST3 directory after building" ON)
+
+if(APPLE AND PSYTRANCER_COPY_VST3_AFTER_BUILD)
+    add_custom_command(TARGET Psytrancer_VST3 POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${PSYTRANCER_VST3_COPY_DIR}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory
+            "$<TARGET_BUNDLE_DIR:Psytrancer_VST3>"
+            "${PSYTRANCER_VST3_COPY_DIR}/Psytrancer.vst3"
+        COMMAND codesign --force --sign - --deep
+            "${PSYTRANCER_VST3_COPY_DIR}/Psytrancer.vst3"
+        VERBATIM)
+endif()

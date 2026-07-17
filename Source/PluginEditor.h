@@ -2,6 +2,12 @@
 
 #include "PluginProcessor.h"
 
+class MouseWheelComboBox final : public juce::ComboBox
+{
+public:
+    void mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
+};
+
 class PsytrancerAudioProcessorEditor final : public juce::AudioProcessorEditor,
                                              private juce::Timer
 {
@@ -13,6 +19,7 @@ public:
     void resized() override;
     void mouseDown (const juce::MouseEvent&) override;
     void mouseDrag (const juce::MouseEvent&) override;
+    void mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
     bool keyPressed (const juce::KeyPress&) override;
 
 private:
@@ -21,15 +28,17 @@ private:
     void drawStepGrid (juce::Graphics&, juce::Rectangle<int>);
     void editStepAt (juce::Point<int> position, bool drag);
     int getStepAtX (int x) const;
+    int getGridRowAtY (int y) const;
+    bool isPitchEditRow (int row) const;
     void setSelectedStep (int step);
     void updatePageForSelection();
 
     PsytrancerAudioProcessor& processor;
     juce::AudioProcessorValueTreeState& parameters;
 
-    juce::ComboBox resolutionBox;
-    juce::ComboBox rootBox;
-    juce::ComboBox scaleBox;
+    MouseWheelComboBox resolutionBox;
+    MouseWheelComboBox rootBox;
+    MouseWheelComboBox scaleBox;
     juce::Slider lengthSlider;
     juce::Slider octaveSlider;
     juce::TextButton initButton { "Init" };
@@ -47,6 +56,10 @@ private:
     int selectedStep = 0;
     int page = 0;
     int visibleSteps = 16;
+    int dragStep = -1;
+    int dragRow = -1;
+    int dragStartY = 0;
+    int dragStartPitch = 0;
     juce::Rectangle<int> gridBounds;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PsytrancerAudioProcessorEditor)
