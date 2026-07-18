@@ -537,6 +537,7 @@ bool PsytrancerAudioProcessor::savePreset (const juce::String& name)
     }
 
     const auto file = directory.getChildFile (presetName + ".psytrancerpreset");
+    currentPresetName = presetName;
 
     if (auto xml = createStateValueTree().createXml())
     {
@@ -572,6 +573,7 @@ bool PsytrancerAudioProcessor::loadPreset (const juce::String& name)
         return false;
 
     loadStateValueTree (state);
+    currentPresetName = sanitisePresetName (name);
     panic();
     return true;
 }
@@ -625,6 +627,7 @@ void PsytrancerAudioProcessor::loadStepsFromValueTree (const juce::ValueTree& ro
 juce::ValueTree PsytrancerAudioProcessor::createStateValueTree()
 {
     juce::ValueTree state { "PSYTRANCER_STATE" };
+    state.setProperty ("presetName", currentPresetName, nullptr);
     state.appendChild (makeParameterOnlyState (parameters.copyState()), nullptr);
     state.appendChild (stepsToValueTree(), nullptr);
     return state;
@@ -634,6 +637,9 @@ void PsytrancerAudioProcessor::loadStateValueTree (const juce::ValueTree& state)
 {
     parameters.replaceState (makeParameterOnlyState (getParameterStateFromRoot (state)));
     loadStepsFromValueTree (getStepStateFromRoot (state));
+
+    if (state.hasType ("PSYTRANCER_STATE"))
+        currentPresetName = state.getProperty ("presetName", "").toString();
 }
 
 void PsytrancerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)

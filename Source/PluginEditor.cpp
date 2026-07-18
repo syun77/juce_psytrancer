@@ -169,7 +169,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     midiKeyAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (parameters, "midiKey", midiKeyToggle);
 
     updateRootOctaveControls();
-    refreshPresetList();
+    refreshPresetList (processor.getCurrentPresetName());
 }
 
 void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)

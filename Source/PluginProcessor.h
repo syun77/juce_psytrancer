@@ -56,6 +56,7 @@ public:
     juce::StringArray getPresetNames() const;
     bool savePreset (const juce::String& name);
     bool loadPreset (const juce::String& name);
+    juce::String getCurrentPresetName() const { return currentPresetName; }
     juce::String getLastPresetError() const { return lastPresetError; }
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
@@ -91,6 +92,7 @@ private:
     bool wasPlaying = false;
     std::atomic<bool> panicRequested { false };
     juce::String lastPresetError;
+    juce::String currentPresetName;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PsytrancerAudioProcessor)
 };
