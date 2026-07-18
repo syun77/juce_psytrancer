@@ -59,6 +59,7 @@ private:
     void pasteSelectedStep();
     void copyCurrentPage();
     void pasteCurrentPage();
+    void pasteCopiedPageToAllPages();
     void appendLogMessage (const juce::String& message);
     void showLogWindow();
 

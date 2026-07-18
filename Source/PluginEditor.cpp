@@ -153,20 +153,16 @@ void PsytrancerAudioProcessorEditor::configureControls()
     pasteStepButton.onClick = [this] { pasteSelectedStep(); };
     copyPageButton.onClick = [this] { copyCurrentPage(); };
     pastePageButton.onClick = [this] { pasteCurrentPage(); };
+    repeatButton.onClick = [this] { pasteCopiedPageToAllPages(); };
     pasteStepButton.setEnabled (false);
     pastePageButton.setEnabled (false);
+    repeatButton.setEnabled (false);
 
     initButton.onClick = [this]
     {
         processor.resetToInitialPattern();
         selectedStep = 0;
         page = 0;
-        repaint();
-    };
-
-    repeatButton.onClick = [this]
-    {
-        processor.repeatFirstPageToLength();
         repaint();
     };
 
@@ -1075,6 +1071,7 @@ void PsytrancerAudioProcessorEditor::copyCurrentPage()
 
     hasCopiedPage = true;
     pastePageButton.setEnabled (true);
+    repeatButton.setEnabled (true);
 }
 
 void PsytrancerAudioProcessorEditor::pasteCurrentPage()
@@ -1092,13 +1089,43 @@ void PsytrancerAudioProcessorEditor::pasteCurrentPage()
     repaint (gridBounds);
 }
 
+void PsytrancerAudioProcessorEditor::pasteCopiedPageToAllPages()
+{
+    if (! hasCopiedPage)
+        return;
+
+    const auto visibleSteps = getVisibleSteps();
+
+    for (auto pageIndex = 0; pageIndex < getPageCount(); ++pageIndex)
+        for (auto stepOffset = 0; stepOffset < visibleSteps; ++stepOffset)
+            processor.setStep (pageIndex * visibleSteps + stepOffset, copiedPage[(size_t) stepOffset]);
+
+    processor.panic();
+    repaint (gridBounds);
+    repaint (pageOverviewBounds);
+}
+
 bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
 {
     auto step = processor.getStep (selectedStep);
     const auto keyCode = key.getKeyCode();
 
-    if (keyCode == juce::KeyPress::leftKey) setSelectedStep (selectedStep - 1);
-    else if (keyCode == juce::KeyPress::rightKey) setSelectedStep (selectedStep + 1);
+    if (keyCode == juce::KeyPress::leftKey)
+    {
+        const auto previousPage = page;
+        setSelectedStep (selectedStep - 1);
+
+        if (page != previousPage && followPlaybackToggle.getToggleState())
+            followPlaybackToggle.setToggleState (false, juce::dontSendNotification);
+    }
+    else if (keyCode == juce::KeyPress::rightKey)
+    {
+        const auto previousPage = page;
+        setSelectedStep (selectedStep + 1);
+
+        if (page != previousPage && followPlaybackToggle.getToggleState())
+            followPlaybackToggle.setToggleState (false, juce::dontSendNotification);
+    }
     else if (keyCode == juce::KeyPress::pageUpKey) setSelectedStep (selectedStep - getVisibleSteps());
     else if (keyCode == juce::KeyPress::pageDownKey) setSelectedStep (selectedStep + getVisibleSteps());
     else if (keyCode == juce::KeyPress::homeKey) setSelectedStep (0);
