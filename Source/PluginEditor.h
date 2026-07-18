@@ -71,6 +71,7 @@ private:
     MouseWheelComboBox lengthBox;
     juce::Slider octaveSlider;
     juce::Slider gateMultiplierSlider;
+    juce::Label gateMultiplierValueLabel;
     juce::ToggleButton midiKeyToggle { "MIDI Key" };
     juce::ToggleButton followPlaybackToggle { "Follow" };
     juce::ComboBox presetBox;

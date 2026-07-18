@@ -84,7 +84,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     auto addSlider = [this] (juce::Slider& slider)
     {
         addAndMakeVisible (slider);
-        slider.setSliderStyle (juce::Slider::IncDecButtons);
+        slider.setSliderStyle (juce::Slider::LinearBar);
         slider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 56, 24);
         slider.setColour (juce::Slider::textBoxTextColourId, text());
         slider.setColour (juce::Slider::textBoxBackgroundColourId, cell());
@@ -95,13 +95,34 @@ void PsytrancerAudioProcessorEditor::configureControls()
 
     addAndMakeVisible (gateMultiplierSlider);
     gateMultiplierSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    gateMultiplierSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 58, 20);
+    gateMultiplierSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
     gateMultiplierSlider.setColour (juce::Slider::rotarySliderFillColourId, selected());
     gateMultiplierSlider.setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colour (0xff3b424c));
     gateMultiplierSlider.setColour (juce::Slider::thumbColourId, text());
     gateMultiplierSlider.setColour (juce::Slider::textBoxTextColourId, text());
     gateMultiplierSlider.setColour (juce::Slider::textBoxBackgroundColourId, background());
     gateMultiplierSlider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
+
+    addChildComponent (gateMultiplierValueLabel);
+    gateMultiplierValueLabel.setJustificationType (juce::Justification::centred);
+    gateMultiplierValueLabel.setColour (juce::Label::textColourId, text());
+    gateMultiplierValueLabel.setColour (juce::Label::backgroundColourId, cell());
+    gateMultiplierValueLabel.setColour (juce::Label::outlineColourId, juce::Colour (0xff3b424c));
+    gateMultiplierValueLabel.setText ("100%", juce::dontSendNotification);
+
+    gateMultiplierSlider.onDragStart = [this]
+    {
+        gateMultiplierValueLabel.setVisible (true);
+    };
+    gateMultiplierSlider.onValueChange = [this]
+    {
+        gateMultiplierValueLabel.setText (juce::String (juce::roundToInt (gateMultiplierSlider.getValue() * 100.0)) + "%",
+                                           juce::dontSendNotification);
+    };
+    gateMultiplierSlider.onDragEnd = [this]
+    {
+        gateMultiplierValueLabel.setVisible (false);
+    };
 
     for (auto* button : { &savePresetButton, &openPresetFolderButton,
                           &logButton, &copyStepButton, &pasteStepButton, &copyPageButton, &pastePageButton,
@@ -230,6 +251,7 @@ void PsytrancerAudioProcessorEditor::resized()
     setControl (row1, octaveSlider, 86);
     setControl (row1, midiKeyToggle, 96);
     gateMultiplierSlider.setBounds (row1.removeFromLeft (82).reduced (8, 0));
+    gateMultiplierValueLabel.setBounds (gateMultiplierSlider.getBounds().withHeight (18).translated (0, -18));
     row1.removeFromLeft (8);
     setControl (row1, scaleBox, 150);
 
