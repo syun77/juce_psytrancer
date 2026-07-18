@@ -323,7 +323,9 @@ void PsytrancerAudioProcessor::renderSequenceSegment (juce::MidiBuffer& generate
         {
             sendActiveNoteOff (generated, outputSample);
 
-            const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
+            const auto note = juce::jlimit (0, 127,
+                                            relativePitchToMidiNote (baseNote, step.relativePitch, scale)
+                                                + step.octaveOffset * 12);
             activeNote = note;
             const auto typeGateMultiplier = step.type == StepType::cut ? 0.1f : 1.0f;
             const auto effectiveGateRate = juce::jlimit (0.01f, 1.0f, step.gateRate * gateMultiplier * typeGateMultiplier);
@@ -375,7 +377,8 @@ StepData PsytrancerAudioProcessor::getStep (int index) const
 void PsytrancerAudioProcessor::setStep (int index, StepData step)
 {
     const auto safeIndex = juce::jlimit (0, 127, index);
-    step.relativePitch = juce::jlimit (-64, 64, step.relativePitch);
+    step.relativePitch = juce::jlimit (-12, 12, step.relativePitch);
+    step.octaveOffset = juce::jlimit (-4, 4, step.octaveOffset);
     step.gateRate = juce::jlimit (0.01f, 1.0f, step.gateRate);
     step.velocity = (juce::uint8) juce::jlimit (1, 127, (int) step.velocity);
 
@@ -574,6 +577,7 @@ juce::ValueTree PsytrancerAudioProcessor::stepsToValueTree() const
         node.setProperty ("enabled", step.enabled, nullptr);
         node.setProperty ("type", stepTypeToString (step.type), nullptr);
         node.setProperty ("pitch", step.relativePitch, nullptr);
+        node.setProperty ("octave", step.octaveOffset, nullptr);
         node.setProperty ("gate", step.gateRate, nullptr);
         node.setProperty ("velocity", (int) step.velocity, nullptr);
         root.appendChild (node, nullptr);
@@ -599,7 +603,8 @@ void PsytrancerAudioProcessor::loadStepsFromValueTree (const juce::ValueTree& ro
 
         if (typeName == "rest")
             step.enabled = false;
-        step.relativePitch = juce::jlimit (-64, 64, (int) node.getProperty ("pitch", 0));
+        step.relativePitch = juce::jlimit (-12, 12, (int) node.getProperty ("pitch", 0));
+        step.octaveOffset = juce::jlimit (-4, 4, (int) node.getProperty ("octave", 0));
         step.gateRate = juce::jlimit (0.01f, 1.0f, (float) node.getProperty ("gate", 0.75f));
         step.velocity = (juce::uint8) juce::jlimit (1, 127, (int) node.getProperty ("velocity", 100));
     }

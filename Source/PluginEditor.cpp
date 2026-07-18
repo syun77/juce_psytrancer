@@ -289,11 +289,9 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
     const auto startStep = page * visibleSteps;
     const auto playStep = processor.getCurrentStep();
     const auto sequenceLength = processor.getSequenceLength();
-    const auto baseNote = processor.getBaseRootMidiNote();
-    const auto scale = getScaleDefinition (processor.getScaleType());
 
     g.setFont (juce::FontOptions (13.0f, juce::Font::bold));
-    const std::array<juce::String, 8> labels { "Step", "Pitch", "Note", "Gate", "Cut", "Hold", "Length", "Velocity" };
+    const std::array<juce::String, 8> labels { "Step", "Pitch", "Octave", "Gate", "Cut", "Hold", "Length", "Velocity" };
 
     for (const auto& label : labels)
     {
@@ -371,6 +369,19 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
                 return;
             }
 
+            if (rowIndex == 5 || rowIndex == 6)
+            {
+                const auto fillAmount = rowIndex == 5 ? (step.type == StepType::cut ? step.gateRate * 0.1f
+                                                                                      : step.gateRate)
+                                                       : (float) step.velocity / 127.0f;
+                const auto barArea = row.reduced (5, 4);
+                const auto barHeight = juce::roundToInt ((float) barArea.getHeight() * fillAmount);
+                auto valueBar = barArea.withTop (barArea.getBottom() - barHeight);
+
+                g.setColour (playhead().withAlpha (0.20f));
+                g.fillRoundedRectangle (valueBar.toFloat(), 2.0f);
+            }
+
             g.setColour (colour);
             g.setFont (rowHeight > 50 ? 18.0f : 15.0f);
             g.drawFittedText (value, row.reduced (3), juce::Justification::centred, 2);
@@ -388,18 +399,18 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
             }
         };
 
-        const auto note = relativePitchToMidiNote (baseNote, step.relativePitch, scale);
         const auto sounded = step.type == StepType::gate || step.type == StepType::cut;
         const auto muted = ! sounded || ! stepEnabled;
         const auto displayedGateRate = step.type == StepType::cut ? step.gateRate * 0.1f : step.gateRate;
 
         const auto showStoredValues = ! stepEnabled;
         drawRow (showStoredValues || sounded ? juce::String (step.relativePitch) : "-", muted ? valueDimColour : valueTextColour, 0);
-        drawRow (showStoredValues || sounded ? midiNoteName (note) : "-", muted ? valueDimColour : valueTextColour, 1);
+        drawRow (showStoredValues || sounded ? juce::String (step.octaveOffset) : "-",
+                 muted ? valueDimColour : valueTextColour, 1);
         drawRow ({}, juce::Colours::transparentBlack, 2);
         drawRow ({}, juce::Colours::transparentBlack, 3);
         drawRow ({}, juce::Colours::transparentBlack, 4);
-        drawRow (showStoredValues || sounded ? juce::String (juce::roundToInt (displayedGateRate * 100.0f)) + "%" : "-",
+        drawRow (showStoredValues || sounded ? juce::String (juce::roundToInt (displayedGateRate * 100.0f)) : "-",
                  muted ? valueDimColour : valueTextColour, 5);
         drawRow (showStoredValues || sounded ? juce::String ((int) step.velocity) : "-",
                  muted ? valueDimColour : valueTextColour, 6);
@@ -527,12 +538,14 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
     {
         const auto step = processor.getStep (dragStep);
         dragStartPitch = step.relativePitch;
+        dragStartOctave = step.octaveOffset;
         dragStartGate = step.gateRate;
         dragStartVelocity = step.velocity;
     }
     else
     {
         dragStartPitch = 0;
+        dragStartOctave = 0;
         dragStartGate = 1.0f;
         dragStartVelocity = 100;
     }
@@ -563,6 +576,8 @@ void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
 
         if (isPitchEditRow (dragRow))
             stepData.relativePitch = dragStartPitch + dragDelta / 8;
+        else if (isOctaveEditRow (dragRow))
+            stepData.octaveOffset = dragStartOctave + dragDelta / 24;
         else if (isGateEditRow (dragRow))
             stepData.gateRate = dragStartGate + (float) (dragDelta / 4) * 0.01f;
         else if (isVelocityEditRow (dragRow))
@@ -643,6 +658,8 @@ void PsytrancerAudioProcessorEditor::mouseWheelMove (const juce::MouseEvent& eve
 
             if (isPitchEditRow (row))
                 stepData.relativePitch += direction;
+            else if (isOctaveEditRow (row))
+                stepData.octaveOffset += direction;
             else if (isGateEditRow (row))
                 stepData.gateRate += (float) direction * 0.05f;
             else if (isVelocityEditRow (row))
@@ -735,7 +752,12 @@ int PsytrancerAudioProcessorEditor::getGridRowAtY (int y) const
 
 bool PsytrancerAudioProcessorEditor::isPitchEditRow (int row) const
 {
-    return row == 0 || row == 1;
+    return row == 0;
+}
+
+bool PsytrancerAudioProcessorEditor::isOctaveEditRow (int row) const
+{
+    return row == 1;
 }
 
 bool PsytrancerAudioProcessorEditor::isStepToggleRow (int row) const
@@ -760,7 +782,7 @@ bool PsytrancerAudioProcessorEditor::isVelocityEditRow (int row) const
 
 bool PsytrancerAudioProcessorEditor::isEditableValueRow (int row) const
 {
-    return isPitchEditRow (row) || isGateEditRow (row) || isVelocityEditRow (row);
+    return isPitchEditRow (row) || isOctaveEditRow (row) || isGateEditRow (row) || isVelocityEditRow (row);
 }
 
 bool PsytrancerAudioProcessorEditor::isStepParameterRow (int row) const
@@ -779,6 +801,8 @@ bool PsytrancerAudioProcessorEditor::resetStepValueAt (int step, int row)
 
     if (isPitchEditRow (row))
         stepData.relativePitch = 0;
+    else if (isOctaveEditRow (row))
+        stepData.octaveOffset = 0;
     else if (isTypeEditRow (row))
         stepData.type = StepType::gate;
     else if (isGateEditRow (row))

@@ -15,6 +15,7 @@ struct StepData
     bool enabled = true;
     StepType type = StepType::gate;
     int relativePitch = 0;
+    int octaveOffset = 0;
     float gateRate = 1.0f;
     juce::uint8 velocity = 100;
 };

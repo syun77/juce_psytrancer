@@ -36,6 +36,7 @@ private:
     int getGridRowAtY (int y) const;
     bool isStepToggleRow (int row) const;
     bool isPitchEditRow (int row) const;
+    bool isOctaveEditRow (int row) const;
     bool isTypeEditRow (int row) const;
     bool isGateEditRow (int row) const;
     bool isVelocityEditRow (int row) const;
@@ -102,6 +103,7 @@ private:
     int lastDraggedToggleRow = -1;
     int dragStartY = 0;
     int dragStartPitch = 0;
+    int dragStartOctave = 0;
     float dragStartGate = 1.0f;
     juce::uint8 dragStartVelocity = 100;
     int hoverStep = -1;
