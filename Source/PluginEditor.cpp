@@ -63,6 +63,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
         box.setScrollWheelEnabled (true);
     };
 
+    addCombo (lengthBox);
     addCombo (resolutionBox);
     addCombo (rootBox);
     addCombo (scaleBox);
@@ -70,7 +71,8 @@ void PsytrancerAudioProcessorEditor::configureControls()
     presetBox.setEditableText (true);
     presetBox.setTextWhenNothingSelected ("Preset");
 
-    setComboItems (resolutionBox, { "1/4", "1/8", "1/16", "1/32", "1/64", "1/8T", "1/16T", "1/32T", "1/8D", "1/16D" });
+    setComboItems (lengthBox, { "1", "2", "3", "4", "5", "6", "7", "8" });
+    setComboItems (resolutionBox, { "1/8", "1/16", "1/32", "1/8T", "1/16T", "1/32T", "1/8D", "1/16D" });
     setComboItems (rootBox, { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" });
 
     juce::StringArray scaleNames;
@@ -89,7 +91,6 @@ void PsytrancerAudioProcessorEditor::configureControls()
         slider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
     };
 
-    addSlider (lengthSlider);
     addSlider (octaveSlider);
 
     addAndMakeVisible (gateMultiplierSlider);
@@ -102,7 +103,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     gateMultiplierSlider.setColour (juce::Slider::textBoxBackgroundColourId, background());
     gateMultiplierSlider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
 
-    for (auto* button : { &lengthDownButton, &lengthUpButton, &savePresetButton, &openPresetFolderButton,
+    for (auto* button : { &savePresetButton, &openPresetFolderButton,
                           &logButton, &copyStepButton, &pasteStepButton, &copyPageButton, &pastePageButton,
                           &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
     {
@@ -122,8 +123,6 @@ void PsytrancerAudioProcessorEditor::configureControls()
     midiKeyToggle.setColour (juce::ToggleButton::tickColourId, selected());
     midiKeyToggle.setColour (juce::ToggleButton::tickDisabledColourId, dimText());
 
-    lengthDownButton.onClick = [this] { changeLengthBy (-visibleSteps); };
-    lengthUpButton.onClick = [this] { changeLengthBy (visibleSteps); };
     midiKeyToggle.onClick = [this] { updateRootOctaveControls(); repaint(); };
     presetBox.onChange = [this] { loadSelectedPreset(); };
     savePresetButton.onClick = [this] { saveCurrentPreset(); };
@@ -157,7 +156,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     resolutionAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "resolution", resolutionBox);
     rootAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "root", rootBox);
     scaleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "scale", scaleBox);
-    lengthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "length", lengthSlider);
+    lengthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "length", lengthBox);
     octaveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "octave", octaveSlider);
     gateMultiplierAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "gateMultiplier", gateMultiplierSlider);
     midiKeyAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (parameters, "midiKey", midiKeyToggle);
@@ -178,7 +177,7 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText ("Psytrancer", header.removeFromLeft (240), juce::Justification::centredLeft, 1);
 
     const std::array<std::pair<juce::Component*, const char*>, 6> labelledControls {{
-        { &lengthSlider, "Length" },
+        { &lengthBox, "Pages" },
         { &resolutionBox, "Rate" },
         { &rootBox, "Root" },
         { &octaveSlider, "Octave" },
@@ -225,9 +224,7 @@ void PsytrancerAudioProcessorEditor::resized()
         row.removeFromLeft (10);
     };
 
-    setControl (row1, lengthSlider, 112);
-    setControl (row1, lengthDownButton, 44);
-    setControl (row1, lengthUpButton, 44);
+    setControl (row1, lengthBox, 74);
     setControl (row1, resolutionBox, 86);
     setControl (row1, rootBox, 70);
     setControl (row1, octaveSlider, 86);
@@ -288,7 +285,8 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
     auto body = bounds.reduced (10);
     auto rowLabels = body.removeFromLeft (labelWidth);
     auto grid = body;
-    const auto cellWidth = juce::jmax (32, grid.getWidth() / visibleSteps);
+    const auto visibleSteps = getVisibleSteps();
+    const auto cellWidth = juce::jmax (1, grid.getWidth() / visibleSteps);
     const auto startStep = page * visibleSteps;
     const auto playStep = processor.getCurrentStep();
     const auto sequenceLength = processor.getSequenceLength();
@@ -473,6 +471,7 @@ void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::
         pages.removeFromLeft (pageGap);
 
         const auto pageActive = pageIndex < pageCount;
+        const auto visibleSteps = getVisibleSteps();
         const auto pagePlaying = playStep >= pageIndex * visibleSteps && playStep < (pageIndex + 1) * visibleSteps;
         g.setColour (pageActive ? cell() : juce::Colours::black.withAlpha (0.25f));
         g.fillRoundedRectangle (pageArea.toFloat(), 3.0f);
@@ -563,7 +562,7 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
     hoverStep = dragStep;
     hoverRow = dragRow;
 
-    if (dragStep >= 0 && dragStep < 128)
+    if (dragStep >= 0 && dragStep < maxSequenceSteps)
     {
         const auto step = processor.getStep (dragStep);
         dragStartPitch = step.relativePitch;
@@ -596,7 +595,7 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
 
 void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
 {
-    if (dragStep >= 0 && dragStep < 128 && isEditableValueRow (dragRow))
+    if (dragStep >= 0 && dragStep < maxSequenceSteps && isEditableValueRow (dragRow))
     {
         setSelectedStep (dragStep);
 
@@ -620,7 +619,7 @@ void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
     const auto draggedStep = getStepAtX (event.x);
     const auto draggedRow = getGridRowAtY (event.y);
 
-    if (gridBounds.contains (event.getPosition()) && draggedStep >= 0 && draggedStep < 128
+    if (gridBounds.contains (event.getPosition()) && draggedStep >= 0 && draggedStep < maxSequenceSteps
         && isTypeEditRow (draggedRow))
     {
         if (draggedStep != lastDraggedToggleStep || draggedRow != lastDraggedToggleRow)
@@ -678,7 +677,7 @@ void PsytrancerAudioProcessorEditor::mouseWheelMove (const juce::MouseEvent& eve
     {
         const auto step = getStepAtX (event.x);
 
-        if (step >= 0 && step < 128)
+        if (step >= 0 && step < maxSequenceSteps)
         {
             setSelectedStep (step);
 
@@ -710,7 +709,7 @@ void PsytrancerAudioProcessorEditor::editStepAt (juce::Point<int> position, bool
 
     const auto step = getStepAtX (position.x);
 
-    if (step < 0 || step >= 128)
+    if (step < 0 || step >= maxSequenceSteps)
         return;
 
     setSelectedStep (step);
@@ -736,7 +735,7 @@ void PsytrancerAudioProcessorEditor::editStepAt (juce::Point<int> position, bool
 
 void PsytrancerAudioProcessorEditor::toggleStepTypeAt (int step, int row)
 {
-    if (step < 0 || step >= 128 || ! isTypeEditRow (row))
+    if (step < 0 || step >= maxSequenceSteps || ! isTypeEditRow (row))
         return;
 
     setSelectedStep (step);
@@ -761,7 +760,8 @@ int PsytrancerAudioProcessorEditor::getStepAtX (int x) const
     const auto body = gridBounds.reduced (10);
     const auto gridX = body.getX() + 84;
     const auto gridWidth = body.getWidth() - 84;
-    const auto cellWidth = juce::jmax (32, gridWidth / visibleSteps);
+    const auto visibleSteps = getVisibleSteps();
+    const auto cellWidth = juce::jmax (1, gridWidth / visibleSteps);
 
     if (x < gridX)
         return -1;
@@ -821,7 +821,7 @@ bool PsytrancerAudioProcessorEditor::isStepParameterRow (int row) const
 
 bool PsytrancerAudioProcessorEditor::resetStepValueAt (int step, int row)
 {
-    if (step < 0 || step >= 128 || ! isStepParameterRow (row))
+    if (step < 0 || step >= maxSequenceSteps || ! isStepParameterRow (row))
         return false;
 
     setSelectedStep (step);
@@ -845,12 +845,13 @@ bool PsytrancerAudioProcessorEditor::resetStepValueAt (int step, int row)
 
 int PsytrancerAudioProcessorEditor::getPageCount() const
 {
-    return juce::jlimit (1, 8, (processor.getSequenceLength() + visibleSteps - 1) / visibleSteps);
+    return processor.getPageCount();
 }
 
 void PsytrancerAudioProcessorEditor::setPage (int newPage)
 {
     page = juce::jlimit (0, getPageCount() - 1, newPage);
+    const auto visibleSteps = getVisibleSteps();
     const auto offset = selectedStep % visibleSteps;
     const auto maxStep = processor.getSequenceLength() - 1;
     selectedStep = juce::jlimit (0, maxStep, page * visibleSteps + offset);
@@ -865,22 +866,7 @@ void PsytrancerAudioProcessorEditor::setSelectedStep (int step)
 
 void PsytrancerAudioProcessorEditor::updatePageForSelection()
 {
-    page = juce::jlimit (0, getPageCount() - 1, selectedStep / visibleSteps);
-}
-
-void PsytrancerAudioProcessorEditor::changeLengthBy (int amount)
-{
-    if (auto* parameter = parameters.getParameter ("length"))
-    {
-        const auto newLength = juce::jlimit (1, 128, processor.getSequenceLength() + amount);
-        parameter->beginChangeGesture();
-        parameter->setValueNotifyingHost (parameter->convertTo0to1 ((float) newLength));
-        parameter->endChangeGesture();
-
-        selectedStep = juce::jlimit (0, newLength - 1, selectedStep);
-        updatePageForSelection();
-        repaint();
-    }
+    page = juce::jlimit (0, getPageCount() - 1, selectedStep / getVisibleSteps());
 }
 
 void PsytrancerAudioProcessorEditor::updateRootOctaveControls()
@@ -1012,6 +998,7 @@ void PsytrancerAudioProcessorEditor::pasteSelectedStep()
 
 void PsytrancerAudioProcessorEditor::copyCurrentPage()
 {
+    const auto visibleSteps = getVisibleSteps();
     const auto firstStep = page * visibleSteps;
 
     for (auto i = 0; i < visibleSteps; ++i)
@@ -1026,6 +1013,7 @@ void PsytrancerAudioProcessorEditor::pasteCurrentPage()
     if (! hasCopiedPage)
         return;
 
+    const auto visibleSteps = getVisibleSteps();
     const auto firstStep = page * visibleSteps;
 
     for (auto i = 0; i < visibleSteps; ++i)
@@ -1042,8 +1030,8 @@ bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
 
     if (keyCode == juce::KeyPress::leftKey) setSelectedStep (selectedStep - 1);
     else if (keyCode == juce::KeyPress::rightKey) setSelectedStep (selectedStep + 1);
-    else if (keyCode == juce::KeyPress::pageUpKey) setSelectedStep (selectedStep - visibleSteps);
-    else if (keyCode == juce::KeyPress::pageDownKey) setSelectedStep (selectedStep + visibleSteps);
+    else if (keyCode == juce::KeyPress::pageUpKey) setSelectedStep (selectedStep - getVisibleSteps());
+    else if (keyCode == juce::KeyPress::pageDownKey) setSelectedStep (selectedStep + getVisibleSteps());
     else if (keyCode == juce::KeyPress::homeKey) setSelectedStep (0);
     else if (keyCode == juce::KeyPress::endKey) setSelectedStep (processor.getSequenceLength() - 1);
     else if (keyCode == juce::KeyPress::upKey)
@@ -1118,7 +1106,7 @@ void PsytrancerAudioProcessorEditor::timerCallback()
         const auto playStep = processor.getCurrentStep();
 
         if (playStep >= 0)
-            setPage (playStep / visibleSteps);
+            setPage (playStep / getVisibleSteps());
     }
 
     updateRootOctaveControls();

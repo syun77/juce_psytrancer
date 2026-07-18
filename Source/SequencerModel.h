@@ -22,17 +22,17 @@ struct StepData
 
 enum class StepResolution
 {
-    quarter = 0,
-    eighth,
+    eighth = 0,
     sixteenth,
     thirtySecond,
-    sixtyFourth,
     eighthTriplet,
     sixteenthTriplet,
     thirtySecondTriplet,
     eighthDotted,
     sixteenthDotted
 };
+
+constexpr int maxSequenceSteps = 384;
 
 enum class ScaleType
 {
@@ -125,11 +125,9 @@ inline double getStepLengthPpq (StepResolution resolution)
 {
     switch (resolution)
     {
-        case StepResolution::quarter: return 1.0;
         case StepResolution::eighth: return 0.5;
         case StepResolution::sixteenth: return 0.25;
         case StepResolution::thirtySecond: return 0.125;
-        case StepResolution::sixtyFourth: return 0.0625;
         case StepResolution::eighthTriplet: return 1.0 / 3.0;
         case StepResolution::sixteenthTriplet: return 1.0 / 6.0;
         case StepResolution::thirtySecondTriplet: return 1.0 / 12.0;
@@ -144,11 +142,9 @@ inline const char* getResolutionName (StepResolution resolution)
 {
     switch (resolution)
     {
-        case StepResolution::quarter: return "1/4";
         case StepResolution::eighth: return "1/8";
         case StepResolution::sixteenth: return "1/16";
         case StepResolution::thirtySecond: return "1/32";
-        case StepResolution::sixtyFourth: return "1/64";
         case StepResolution::eighthTriplet: return "1/8T";
         case StepResolution::sixteenthTriplet: return "1/16T";
         case StepResolution::thirtySecondTriplet: return "1/32T";

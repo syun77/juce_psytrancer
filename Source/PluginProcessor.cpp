@@ -90,11 +90,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout PsytrancerAudioProcessor::cr
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
     params.push_back (std::make_unique<juce::AudioParameterInt> (
-        juce::ParameterID { "length", 1 }, "Length", 1, 128, 16));
+        juce::ParameterID { "length", 1 }, "Length", 1, 8, 1));
 
     params.push_back (std::make_unique<juce::AudioParameterChoice> (
         juce::ParameterID { "resolution", 1 }, "Rate",
-        makeChoiceList ({ "1/4", "1/8", "1/16", "1/32", "1/64", "1/8T", "1/16T", "1/32T", "1/8D", "1/16D" }), 2));
+        makeChoiceList ({ "1/8", "1/16", "1/32", "1/8T", "1/16T", "1/32T", "1/8D", "1/16D" }), 1));
 
     params.push_back (std::make_unique<juce::AudioParameterChoice> (
         juce::ParameterID { "root", 1 }, "Root",
@@ -371,12 +371,12 @@ juce::AudioProcessorEditor* PsytrancerAudioProcessor::createEditor()
 StepData PsytrancerAudioProcessor::getStep (int index) const
 {
     const juce::ScopedLock lock (stepLock);
-    return steps[(size_t) juce::jlimit (0, 127, index)];
+    return steps[(size_t) juce::jlimit (0, maxSequenceSteps - 1, index)];
 }
 
 void PsytrancerAudioProcessor::setStep (int index, StepData step)
 {
-    const auto safeIndex = juce::jlimit (0, 127, index);
+    const auto safeIndex = juce::jlimit (0, maxSequenceSteps - 1, index);
     step.relativePitch = juce::jlimit (-12, 12, step.relativePitch);
     step.octaveOffset = juce::jlimit (-4, 4, step.octaveOffset);
     step.gateRate = juce::jlimit (0.01f, 1.0f, step.gateRate);
@@ -405,7 +405,7 @@ void PsytrancerAudioProcessor::resetToInitialPattern()
     if (auto* parameter = parameters.getParameter ("length"))
     {
         parameter->beginChangeGesture();
-        parameter->setValueNotifyingHost (parameter->convertTo0to1 (16.0f));
+        parameter->setValueNotifyingHost (parameter->convertTo0to1 (1.0f));
         parameter->endChangeGesture();
     }
 
@@ -418,14 +418,16 @@ void PsytrancerAudioProcessor::repeatFirstPageToLength()
     const auto length = getSequenceLength();
     const juce::ScopedLock lock (stepLock);
 
-    for (auto i = 16; i < length; ++i)
-        steps[(size_t) i] = steps[(size_t) (i % 16)];
+    const auto stepsPerPage = getStepsPerPage();
+
+    for (auto i = stepsPerPage; i < length; ++i)
+        steps[(size_t) i] = steps[(size_t) (i % stepsPerPage)];
 }
 
 void PsytrancerAudioProcessor::shiftPattern (int amount)
 {
     const auto length = getSequenceLength();
-    std::array<StepData, 128> copy;
+    std::array<StepData, maxSequenceSteps> copy;
 
     {
         const juce::ScopedLock lock (stepLock);
@@ -470,12 +472,22 @@ ScaleType PsytrancerAudioProcessor::getScaleType() const
 
 StepResolution PsytrancerAudioProcessor::getResolution() const
 {
-    return (StepResolution) juce::jlimit (0, 9, (int) *parameters.getRawParameterValue ("resolution"));
+    return (StepResolution) juce::jlimit (0, 7, (int) *parameters.getRawParameterValue ("resolution"));
+}
+
+int PsytrancerAudioProcessor::getStepsPerPage() const
+{
+    return juce::jlimit (1, 48, (int) std::floor (4.0 / getStepLengthPpq (getResolution())));
+}
+
+int PsytrancerAudioProcessor::getPageCount() const
+{
+    return juce::jlimit (1, 8, (int) *parameters.getRawParameterValue ("length"));
 }
 
 int PsytrancerAudioProcessor::getSequenceLength() const
 {
-    return juce::jlimit (1, 128, (int) *parameters.getRawParameterValue ("length"));
+    return getPageCount() * getStepsPerPage();
 }
 
 float PsytrancerAudioProcessor::getGateMultiplier() const
@@ -595,7 +607,7 @@ void PsytrancerAudioProcessor::loadStepsFromValueTree (const juce::ValueTree& ro
 
     for (const auto& node : root)
     {
-        const auto index = juce::jlimit (0, 127, (int) node.getProperty ("index", 0));
+        const auto index = juce::jlimit (0, maxSequenceSteps - 1, (int) node.getProperty ("index", 0));
         auto& step = steps[(size_t) index];
         const auto typeName = node.getProperty ("type", "gate").toString();
         step.enabled = (bool) node.getProperty ("enabled", true);

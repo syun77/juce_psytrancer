@@ -45,10 +45,10 @@ private:
     bool resetStepValueAt (int step, int row);
     void toggleStepTypeAt (int step, int row);
     int getPageCount() const;
+    int getVisibleSteps() const { return processor.getStepsPerPage(); }
     void setPage (int newPage);
     void setSelectedStep (int step);
     void updatePageForSelection();
-    void changeLengthBy (int amount);
     void updateRootOctaveControls();
     void refreshPresetList (const juce::String& selectedName = {});
     void saveCurrentPreset();
@@ -67,12 +67,10 @@ private:
     MouseWheelComboBox resolutionBox;
     MouseWheelComboBox rootBox;
     MouseWheelComboBox scaleBox;
-    juce::Slider lengthSlider;
+    MouseWheelComboBox lengthBox;
     juce::Slider octaveSlider;
     juce::Slider gateMultiplierSlider;
     juce::ToggleButton midiKeyToggle { "MIDI Key" };
-    juce::TextButton lengthDownButton { "-16" };
-    juce::TextButton lengthUpButton { "+16" };
     juce::ToggleButton followPlaybackToggle { "Follow" };
     juce::ComboBox presetBox;
     juce::TextButton savePresetButton { "Save" };
@@ -91,14 +89,13 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> resolutionAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> rootAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> scaleAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lengthAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> lengthAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> octaveAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gateMultiplierAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> midiKeyAttachment;
 
     int selectedStep = 0;
     int page = 0;
-    int visibleSteps = 16;
     int dragStep = -1;
     int dragRow = -1;
     int lastDraggedToggleStep = -1;
@@ -112,7 +109,7 @@ private:
     int hoverRow = -1;
     bool refreshingPresetList = false;
     StepData copiedStep;
-    std::array<StepData, 16> copiedPage {};
+    std::array<StepData, 48> copiedPage {};
     bool hasCopiedStep = false;
     bool hasCopiedPage = false;
     juce::String logMessages;

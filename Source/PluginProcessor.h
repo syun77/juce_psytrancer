@@ -47,6 +47,8 @@ public:
     bool isMidiKeyEnabled() const;
     ScaleType getScaleType() const;
     StepResolution getResolution() const;
+    int getStepsPerPage() const;
+    int getPageCount() const;
     int getSequenceLength() const;
     float getGateMultiplier() const;
 
@@ -73,7 +75,7 @@ private:
 
     juce::AudioProcessorValueTreeState parameters;
     mutable juce::CriticalSection stepLock;
-    std::array<StepData, 128> steps {};
+    std::array<StepData, maxSequenceSteps> steps {};
 
     double currentSampleRate = 44100.0;
     double previousPpq = 0.0;
