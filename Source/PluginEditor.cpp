@@ -195,7 +195,8 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (text());
     g.setFont (juce::FontOptions (26.0f, juce::Font::bold));
-    g.drawFittedText ("Psytrancer", header.removeFromLeft (240), juce::Justification::centredLeft, 1);
+    g.drawFittedText ("Psytrancer", header.removeFromTop (32).removeFromLeft (240), juce::Justification::centredLeft, 1);
+    drawPageOverview (g, pageOverviewBounds);
 
     const std::array<std::pair<juce::Component*, const char*>, 6> labelledControls {{
         { &lengthBox, "Pages" },
@@ -218,24 +219,21 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour (panel());
     g.fillRoundedRectangle (footer.toFloat(), 6.0f);
 
-    auto overview = footer.removeFromRight (252).reduced (8, 3);
-    pageOverviewBounds = overview;
-
     g.setColour (dimText());
     g.setFont (14.0f);
-    footer.removeFromRight (356);
+    footer.removeFromRight (630);
     g.drawFittedText ("Page " + juce::String (page + 1) + "/" + juce::String (getPageCount()) + "   Selected Step "
                           + juce::String (selectedStep + 1)
                           + "   Click the mini map to change page   G/C/H",
                       footer.reduced (12, 0), juce::Justification::centredLeft, 1);
 
-    drawPageOverview (g, overview);
 }
 
 void PsytrancerAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (16);
     auto top = area.removeFromTop (headerHeight - 16);
+    pageOverviewBounds = juce::Rectangle<int> (16, 52, 174, 36);
     top.removeFromLeft (190);
 
     auto row1 = top.removeFromTop (52);
@@ -259,37 +257,30 @@ void PsytrancerAudioProcessorEditor::resized()
     followPlaybackToggle.setBounds (row2.removeFromLeft (82).reduced (3, 2));
     row2.removeFromLeft (14);
     initButton.setBounds (row2.removeFromLeft (70).reduced (3, 4));
-    row2.removeFromLeft (10);
-    repeatButton.setBounds (row2.removeFromLeft (86).reduced (3, 4));
-    row2.removeFromLeft (10);
-    shiftLeftButton.setBounds (row2.removeFromLeft (44).reduced (3, 4));
-    row2.removeFromLeft (6);
-    shiftRightButton.setBounds (row2.removeFromLeft (44).reduced (3, 4));
-    row2.removeFromLeft (10);
-    panicButton.setBounds (row2.removeFromLeft (80).reduced (3, 4));
     row2.removeFromLeft (14);
     presetBox.setBounds (row2.removeFromLeft (140).reduced (3, 4));
     row2.removeFromLeft (8);
     savePresetButton.setBounds (row2.removeFromLeft (62).reduced (3, 4));
     row2.removeFromLeft (6);
     openPresetFolderButton.setBounds (row2.removeFromLeft (70).reduced (3, 4));
-    row2.removeFromLeft (6);
-    logButton.setBounds (row2.removeFromLeft (56).reduced (3, 4));
 
     auto footer = getLocalBounds().removeFromBottom (footerHeight).reduced (16, 6);
-    footer.removeFromRight (252);
-
-    auto clipboardControls = footer.removeFromRight (356);
+    auto clipboardControls = footer.removeFromRight (630);
     auto setClipboardButton = [] (juce::Rectangle<int>& row, juce::Component& control, int width)
     {
         control.setBounds (row.removeFromLeft (width).reduced (3, 4));
         row.removeFromLeft (4);
     };
 
-    setClipboardButton (clipboardControls, copyStepButton, 84);
-    setClipboardButton (clipboardControls, pasteStepButton, 84);
-    setClipboardButton (clipboardControls, copyPageButton, 84);
-    setClipboardButton (clipboardControls, pastePageButton, 84);
+    setClipboardButton (clipboardControls, copyStepButton, 78);
+    setClipboardButton (clipboardControls, pasteStepButton, 78);
+    setClipboardButton (clipboardControls, copyPageButton, 78);
+    setClipboardButton (clipboardControls, pastePageButton, 78);
+    setClipboardButton (clipboardControls, repeatButton, 108);
+    setClipboardButton (clipboardControls, shiftLeftButton, 34);
+    setClipboardButton (clipboardControls, shiftRightButton, 34);
+    setClipboardButton (clipboardControls, panicButton, 56);
+    setClipboardButton (clipboardControls, logButton, 48);
 
     area.removeFromBottom (footerHeight);
     gridBounds = area.reduced (0, 8);
@@ -495,19 +486,23 @@ void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::
         const auto pageActive = pageIndex < pageCount;
         const auto visibleSteps = getVisibleSteps();
         const auto pagePlaying = playStep >= pageIndex * visibleSteps && playStep < (pageIndex + 1) * visibleSteps;
-        g.setColour (pageActive ? cell() : juce::Colours::black.withAlpha (0.25f));
+        g.setColour (! pageActive ? juce::Colours::black.withAlpha (0.25f)
+                                  : pageIndex == page ? cell()
+                                                       : selected().withAlpha (0.14f));
         g.fillRoundedRectangle (pageArea.toFloat(), 3.0f);
         g.setColour (juce::Colour (0xff3b424c));
         g.drawRoundedRectangle (pageArea.toFloat().reduced (0.5f), 3.0f, 1.0f);
 
         if (pagePlaying)
         {
+			// Draw a playhead indicator around the currently playing page
             g.setColour (playhead());
             g.drawRoundedRectangle (pageArea.toFloat().reduced (1.0f), 3.0f, 2.0f);
         }
 
         if (pageIndex == page)
         {
+			// Draw a highlight around the currently selected page
             g.setColour (selected());
             g.drawRoundedRectangle (pageArea.toFloat().reduced (3.0f), 2.0f, 2.0f);
         }
@@ -536,6 +531,26 @@ void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::
                 g.setColour (dimText().withAlpha (0.24f));
 
             g.fillRect (tick);
+        }
+
+        if (pageActive && pageIndex != page)
+        {
+            g.setColour (juce::Colours::black.withAlpha (0.52f));
+            g.fillRoundedRectangle (pageArea.toFloat(), 3.0f);
+            g.setColour (selected().withAlpha (0.08f));
+            g.fillRoundedRectangle (pageArea.toFloat(), 3.0f);
+        }
+
+        if (pagePlaying)
+        {
+            g.setColour (playhead());
+            g.drawRoundedRectangle (pageArea.toFloat().reduced (1.0f), 3.0f, 2.0f);
+        }
+
+        if (pageIndex == page)
+        {
+            g.setColour (selected());
+            g.drawRoundedRectangle (pageArea.toFloat().reduced (3.0f), 2.0f, 2.0f);
         }
     }
 }
@@ -1166,4 +1181,5 @@ void PsytrancerAudioProcessorEditor::timerCallback()
     updateRootOctaveControls();
     repaint (gridBounds);
     repaint (getLocalBounds().removeFromBottom (footerHeight));
+    repaint (pageOverviewBounds);
 }

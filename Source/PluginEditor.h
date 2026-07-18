@@ -83,7 +83,7 @@ private:
     juce::TextButton copyPageButton { "Copy Page" };
     juce::TextButton pastePageButton { "Paste Page" };
     juce::TextButton initButton { "Init" };
-    juce::TextButton repeatButton { "Repeat" };
+    juce::TextButton repeatButton { "Paste All Pages" };
     juce::TextButton shiftLeftButton { "<" };
     juce::TextButton shiftRightButton { ">" };
     juce::TextButton panicButton { "Panic" };
