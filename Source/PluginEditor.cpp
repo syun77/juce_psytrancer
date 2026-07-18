@@ -558,6 +558,7 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
     dragRow = getGridRowAtY (event.y);
     lastDraggedToggleStep = -1;
     lastDraggedToggleRow = -1;
+    isDraggingTypeState = false;
     dragStartY = event.y;
     hoverStep = dragStep;
     hoverRow = dragRow;
@@ -590,6 +591,13 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
     {
         lastDraggedToggleStep = dragStep;
         lastDraggedToggleRow = dragRow;
+        isDraggingTypeState = true;
+
+        const auto step = processor.getStep (dragStep);
+        const auto selectedType = dragRow == 2 ? StepType::gate
+                                : dragRow == 3 ? StepType::cut
+                                               : StepType::hold;
+        draggedTypeTargetEnabled = step.enabled && step.type == selectedType;
     }
 }
 
@@ -619,12 +627,12 @@ void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
     const auto draggedStep = getStepAtX (event.x);
     const auto draggedRow = getGridRowAtY (event.y);
 
-    if (gridBounds.contains (event.getPosition()) && draggedStep >= 0 && draggedStep < maxSequenceSteps
-        && isTypeEditRow (draggedRow))
+    if (isDraggingTypeState && gridBounds.contains (event.getPosition())
+        && draggedStep >= 0 && draggedStep < maxSequenceSteps && draggedRow == dragRow)
     {
         if (draggedStep != lastDraggedToggleStep || draggedRow != lastDraggedToggleRow)
         {
-            toggleStepTypeAt (draggedStep, draggedRow);
+            setStepTypeEnabledAt (draggedStep, dragRow, draggedTypeTargetEnabled);
             lastDraggedToggleStep = draggedStep;
             lastDraggedToggleRow = draggedRow;
             repaint (gridBounds);
@@ -642,6 +650,7 @@ void PsytrancerAudioProcessorEditor::mouseUp (const juce::MouseEvent&)
     dragRow = -1;
     lastDraggedToggleStep = -1;
     lastDraggedToggleRow = -1;
+    isDraggingTypeState = false;
     repaint (gridBounds);
 }
 
@@ -750,6 +759,29 @@ void PsytrancerAudioProcessorEditor::toggleStepTypeAt (int step, int row)
     {
         stepData.enabled = true;
         stepData.type = selectedType;
+    }
+
+    processor.setStep (step, stepData);
+}
+
+void PsytrancerAudioProcessorEditor::setStepTypeEnabledAt (int step, int row, bool shouldEnable)
+{
+    if (step < 0 || step >= maxSequenceSteps || ! isTypeEditRow (row))
+        return;
+
+    setSelectedStep (step);
+    auto stepData = processor.getStep (step);
+
+    if (shouldEnable)
+    {
+        stepData.enabled = true;
+        stepData.type = row == 2 ? StepType::gate
+                      : row == 3 ? StepType::cut
+                                 : StepType::hold;
+    }
+    else
+    {
+        stepData.enabled = false;
     }
 
     processor.setStep (step, stepData);

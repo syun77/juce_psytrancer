@@ -44,6 +44,7 @@ private:
     bool isStepParameterRow (int row) const;
     bool resetStepValueAt (int step, int row);
     void toggleStepTypeAt (int step, int row);
+    void setStepTypeEnabledAt (int step, int row, bool shouldEnable);
     int getPageCount() const;
     int getVisibleSteps() const { return processor.getStepsPerPage(); }
     void setPage (int newPage);
@@ -100,6 +101,8 @@ private:
     int dragRow = -1;
     int lastDraggedToggleStep = -1;
     int lastDraggedToggleRow = -1;
+    bool isDraggingTypeState = false;
+    bool draggedTypeTargetEnabled = false;
     int dragStartY = 0;
     int dragStartPitch = 0;
     int dragStartOctave = 0;
