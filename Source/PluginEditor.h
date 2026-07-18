@@ -50,6 +50,8 @@ private:
     void refreshPresetList (const juce::String& selectedName = {});
     void saveCurrentPreset();
     void loadSelectedPreset();
+    void appendLogMessage (const juce::String& message);
+    void showLogWindow();
 
     PsytrancerAudioProcessor& processor;
     juce::AudioProcessorValueTreeState& parameters;
@@ -68,6 +70,7 @@ private:
     juce::ToggleButton pageMapToggle { "Map" };
     juce::ComboBox presetBox;
     juce::TextButton savePresetButton { "Save" };
+    juce::TextButton logButton { "Log" };
     juce::TextButton initButton { "Init" };
     juce::TextButton repeatButton { "Repeat" };
     juce::TextButton shiftLeftButton { "<" };
@@ -94,6 +97,7 @@ private:
     int hoverStep = -1;
     int hoverRow = -1;
     bool refreshingPresetList = false;
+    juce::String logMessages;
     juce::Rectangle<int> gridBounds;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PsytrancerAudioProcessorEditor)

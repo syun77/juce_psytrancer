@@ -103,7 +103,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     gateMultiplierSlider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
 
     for (auto* button : { &lengthDownButton, &lengthUpButton, &prevPageButton, &nextPageButton, &savePresetButton,
-                          &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
+                          &logButton, &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
     {
         addAndMakeVisible (*button);
         button->setColour (juce::TextButton::buttonColourId, cell());
@@ -129,6 +129,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     midiKeyToggle.onClick = [this] { updateRootOctaveControls(); repaint(); };
     presetBox.onChange = [this] { loadSelectedPreset(); };
     savePresetButton.onClick = [this] { saveCurrentPreset(); };
+    logButton.onClick = [this] { showLogWindow(); };
 
     initButton.onClick = [this]
     {
@@ -248,9 +249,11 @@ void PsytrancerAudioProcessorEditor::resized()
     row2.removeFromLeft (10);
     panicButton.setBounds (row2.removeFromLeft (80).reduced (3, 4));
     row2.removeFromLeft (14);
-    presetBox.setBounds (row2.removeFromLeft (160).reduced (3, 4));
+    presetBox.setBounds (row2.removeFromLeft (140).reduced (3, 4));
     row2.removeFromLeft (8);
     savePresetButton.setBounds (row2.removeFromLeft (62).reduced (3, 4));
+    row2.removeFromLeft (6);
+    logButton.setBounds (row2.removeFromLeft (56).reduced (3, 4));
 
     area.removeFromBottom (footerHeight);
     gridBounds = area.reduced (0, 8);
@@ -732,10 +735,60 @@ void PsytrancerAudioProcessorEditor::saveCurrentPreset()
     const auto presetName = presetBox.getText().trim();
 
     if (presetName.isEmpty())
+    {
+        appendLogMessage ("Preset save was not started: enter a name in the Preset field first.");
+        showLogWindow();
         return;
+    }
 
     if (processor.savePreset (presetName))
+    {
+        auto fileName = juce::File::createLegalFileName (presetName);
+
+        if (fileName.endsWithIgnoreCase (".psytrancerpreset"))
+            fileName = fileName.upToLastOccurrenceOf (".psytrancerpreset", false, true);
+
+        if (fileName.isEmpty())
+            fileName = "Untitled";
+
+        const auto file = processor.getPresetDirectory().getChildFile (fileName + ".psytrancerpreset");
+        appendLogMessage ("Preset saved successfully: " + file.getFullPathName());
         refreshPresetList (presetName);
+    }
+    else
+    {
+        appendLogMessage ("Preset save failed: " + processor.getLastPresetError());
+        showLogWindow();
+    }
+}
+
+void PsytrancerAudioProcessorEditor::appendLogMessage (const juce::String& message)
+{
+    logMessages << "[" << juce::Time::getCurrentTime().formatted ("%Y-%m-%d %H:%M:%S") << "] "
+                << message << "\n\n";
+}
+
+void PsytrancerAudioProcessorEditor::showLogWindow()
+{
+    auto* editor = new juce::TextEditor();
+    editor->setMultiLine (true);
+    editor->setReadOnly (true);
+    editor->setScrollbarsShown (true);
+    editor->setText (logMessages.isNotEmpty() ? logMessages : "No errors have been recorded.");
+    editor->setColour (juce::TextEditor::backgroundColourId, background());
+    editor->setColour (juce::TextEditor::textColourId, text());
+    editor->setColour (juce::TextEditor::outlineColourId, juce::Colour (0xff3b424c));
+    editor->setSize (620, 260);
+
+    juce::DialogWindow::LaunchOptions options;
+    options.dialogTitle = "Psytrancer Log";
+    options.dialogBackgroundColour = background();
+    options.content.setOwned (editor);
+    options.componentToCentreAround = this;
+    options.escapeKeyTriggersCloseButton = true;
+    options.useNativeTitleBar = true;
+    options.resizable = true;
+    options.launchAsync();
 }
 
 void PsytrancerAudioProcessorEditor::loadSelectedPreset()

@@ -501,7 +501,18 @@ float PsytrancerAudioProcessor::getGateMultiplier() const
 
 juce::File PsytrancerAudioProcessor::getPresetDirectory() const
 {
-    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
+    auto applicationDataDirectory = juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory);
+
+   #if JUCE_MAC
+    // JUCE maps userApplicationDataDirectory to ~/Library on macOS. Keep our data
+    // in Application Support, which is writable without Documents/Desktop TCC access.
+    applicationDataDirectory = applicationDataDirectory.getChildFile ("Application Support");
+   #endif
+
+    // This resolves to a per-user, writable location on every desktop platform:
+    // %APPDATA% on Windows, ~/Library/Application Support on macOS, and
+    // $XDG_CONFIG_HOME (normally ~/.config) on Linux.
+    return applicationDataDirectory
         .getChildFile ("Psytrancer")
         .getChildFile ("Presets");
 }
@@ -524,13 +535,26 @@ bool PsytrancerAudioProcessor::savePreset (const juce::String& name)
     const auto directory = getPresetDirectory();
 
     if (! directory.createDirectory())
+    {
+        lastPresetError = "Could not create the preset folder:\n" + directory.getFullPathName();
         return false;
+    }
 
     const auto file = directory.getChildFile (presetName + ".psytrancerpreset");
 
     if (auto xml = createStateValueTree().createXml())
-        return xml->writeTo (file);
+    {
+        if (xml->writeTo (file))
+        {
+            lastPresetError.clear();
+            return true;
+        }
 
+        lastPresetError = "Could not write the preset file:\n" + file.getFullPathName();
+        return false;
+    }
+
+    lastPresetError = "Could not create preset data.";
     return false;
 }
 
