@@ -69,8 +69,8 @@ private:
     MouseWheelComboBox resolutionBox;
     MouseWheelComboBox rootBox;
     MouseWheelComboBox scaleBox;
+    MouseWheelComboBox octaveBox;
     MouseWheelComboBox lengthBox;
-    juce::Slider octaveSlider;
     juce::Slider gateMultiplierSlider;
     juce::Label gateMultiplierValueLabel;
     juce::ToggleButton midiKeyToggle { "MIDI Key" };
@@ -93,7 +93,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> rootAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> scaleAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> lengthAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> octaveAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> octaveAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gateMultiplierAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> midiKeyAttachment;
 

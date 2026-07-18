@@ -67,6 +67,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     addCombo (resolutionBox);
     addCombo (rootBox);
     addCombo (scaleBox);
+    addCombo (octaveBox);
     addCombo (presetBox);
     presetBox.setEditableText (true);
     presetBox.setTextWhenNothingSelected ("Preset");
@@ -74,24 +75,13 @@ void PsytrancerAudioProcessorEditor::configureControls()
     setComboItems (lengthBox, { "1", "2", "3", "4", "5", "6", "7", "8" });
     setComboItems (resolutionBox, { "1/8", "1/16", "1/32", "1/8T", "1/16T", "1/32T", "1/8D", "1/16D" });
     setComboItems (rootBox, { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" });
+    setComboItems (octaveBox, { "0", "1", "2", "3", "4", "5", "6", "7", "8" });
 
     juce::StringArray scaleNames;
     for (const auto& scale : getScaleDefinitions())
         scaleNames.add (scale.name);
 
     setComboItems (scaleBox, scaleNames);
-
-    auto addSlider = [this] (juce::Slider& slider)
-    {
-        addAndMakeVisible (slider);
-        slider.setSliderStyle (juce::Slider::LinearBar);
-        slider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 56, 24);
-        slider.setColour (juce::Slider::textBoxTextColourId, text());
-        slider.setColour (juce::Slider::textBoxBackgroundColourId, cell());
-        slider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
-    };
-
-    addSlider (octaveSlider);
 
     addAndMakeVisible (gateMultiplierSlider);
     gateMultiplierSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
@@ -174,7 +164,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     rootAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "root", rootBox);
     scaleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "scale", scaleBox);
     lengthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "length", lengthBox);
-    octaveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "octave", octaveSlider);
+    octaveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (parameters, "octave", octaveBox);
     gateMultiplierAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (parameters, "gateMultiplier", gateMultiplierSlider);
     midiKeyAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (parameters, "midiKey", midiKeyToggle);
 
@@ -198,7 +188,7 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
         { &lengthBox, "Pages" },
         { &resolutionBox, "Rate" },
         { &rootBox, "Root" },
-        { &octaveSlider, "Octave" },
+        { &octaveBox, "Octave" },
         { &gateMultiplierSlider, "Gate Mult" },
         { &scaleBox, "Scale" }
     }};
@@ -242,7 +232,7 @@ void PsytrancerAudioProcessorEditor::resized()
     setControl (row1, lengthBox, 74);
     setControl (row1, resolutionBox, 86);
     setControl (row1, rootBox, 70);
-    setControl (row1, octaveSlider, 86);
+    setControl (row1, octaveBox, 72);
     setControl (row1, midiKeyToggle, 96);
     gateMultiplierSlider.setBounds (row1.removeFromLeft (82).reduced (8, 0));
     gateMultiplierValueLabel.setBounds (gateMultiplierSlider.getBounds().withHeight (18).translated (0, -18));
@@ -938,7 +928,7 @@ void PsytrancerAudioProcessorEditor::updateRootOctaveControls()
 {
     const auto enabled = ! midiKeyToggle.getToggleState();
     rootBox.setEnabled (enabled);
-    octaveSlider.setEnabled (enabled);
+    octaveBox.setEnabled (enabled);
 }
 
 void PsytrancerAudioProcessorEditor::refreshPresetList (const juce::String& selectedName)
