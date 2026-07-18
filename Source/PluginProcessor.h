@@ -37,6 +37,7 @@ public:
     StepData getStep (int index) const;
     void setStep (int index, StepData step);
     void clearPattern();
+    void resetToInitialPattern();
     void repeatFirstPageToLength();
     void shiftPattern (int amount);
     void panic();

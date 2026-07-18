@@ -7,8 +7,7 @@ enum class StepType
 {
     gate = 0,
     cut,
-    hold,
-    rest
+    hold
 };
 
 struct StepData
@@ -166,8 +165,7 @@ inline juce::String getStepTypeName (StepType type)
         case StepType::gate: return "G";
         case StepType::cut: return "C";
         case StepType::hold: return "H";
-        case StepType::rest: return "R";
     }
 
-    return "R";
+    return "G";
 }
