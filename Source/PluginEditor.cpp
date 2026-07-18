@@ -5,7 +5,7 @@ namespace
 constexpr auto headerHeight = 96;
 constexpr auto footerHeight = 44;
 constexpr auto stepHeaderHeight = 30;
-constexpr auto rowHeight = 58;
+constexpr auto rowHeight = 31;
 
 juce::Colour background() { return juce::Colour (0xff17191d); }
 juce::Colour panel() { return juce::Colour (0xff22262c); }
@@ -45,7 +45,7 @@ void MouseWheelComboBox::mouseWheelMove (const juce::MouseEvent&, const juce::Mo
 PsytrancerAudioProcessorEditor::PsytrancerAudioProcessorEditor (PsytrancerAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p), parameters (p.getParameters())
 {
-    setSize (1080, 450);
+    setSize (1080, 440);
     setResizable (true, true);
     setWantsKeyboardFocus (true);
     configureControls();
@@ -293,7 +293,7 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
     const auto scale = getScaleDefinition (processor.getScaleType());
 
     g.setFont (juce::FontOptions (13.0f, juce::Font::bold));
-    const std::array<juce::String, 6> labels { "Step", "Pitch", "Note", "Type", "Gate", "Velocity" };
+    const std::array<juce::String, 8> labels { "Step", "Pitch", "Note", "Gate", "Cut", "Hold", "Length", "Velocity" };
 
     for (const auto& label : labels)
     {
@@ -306,7 +306,7 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
     {
         const auto stepIndex = startStep + visible;
         const auto x = grid.getX() + visible * cellWidth;
-        auto column = juce::Rectangle<int> (x, grid.getY(), cellWidth - 2, stepHeaderHeight + rowHeight * 5);
+        auto column = juce::Rectangle<int> (x, grid.getY(), cellWidth - 2, stepHeaderHeight + rowHeight * 7);
         const auto active = stepIndex < sequenceLength;
         const auto isSelected = stepIndex == selectedStep;
         const auto isPlaying = stepIndex == playStep;
@@ -353,6 +353,24 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
         {
             row.translate (0, row.getHeight());
             row.setHeight (rowHeight);
+
+            if (isTypeEditRow (rowIndex))
+            {
+                const auto type = rowIndex == 2 ? StepType::gate
+                                : rowIndex == 3 ? StepType::cut
+                                                : StepType::hold;
+                const auto typeIsEnabled = step.enabled && step.type == type;
+                const auto toggleBounds = row.reduced (6, 5);
+
+                g.setColour (typeIsEnabled ? juce::Colour (0xff9da3aa)
+                                           : juce::Colour (0xff3b424c));
+                g.fillRoundedRectangle (toggleBounds.toFloat(), 3.0f);
+                g.setColour (typeIsEnabled ? juce::Colour (0xffc5cbd1)
+                                           : juce::Colour (0xff59616b));
+                g.drawRoundedRectangle (toggleBounds.toFloat(), 3.0f, 1.0f);
+                return;
+            }
+
             g.setColour (colour);
             g.setFont (rowHeight > 50 ? 18.0f : 15.0f);
             g.drawFittedText (value, row.reduced (3), juce::Justification::centred, 2);
@@ -378,11 +396,13 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
         const auto showStoredValues = ! stepEnabled;
         drawRow (showStoredValues || sounded ? juce::String (step.relativePitch) : "-", muted ? valueDimColour : valueTextColour, 0);
         drawRow (showStoredValues || sounded ? midiNoteName (note) : "-", muted ? valueDimColour : valueTextColour, 1);
-        drawRow (getStepTypeName (step.type), ! stepEnabled ? valueDimColour : accentColour, 2);
+        drawRow ({}, juce::Colours::transparentBlack, 2);
+        drawRow ({}, juce::Colours::transparentBlack, 3);
+        drawRow ({}, juce::Colours::transparentBlack, 4);
         drawRow (showStoredValues || sounded ? juce::String (juce::roundToInt (displayedGateRate * 100.0f)) + "%" : "-",
-                 muted ? valueDimColour : valueTextColour, 3);
+                 muted ? valueDimColour : valueTextColour, 5);
         drawRow (showStoredValues || sounded ? juce::String ((int) step.velocity) : "-",
-                 muted ? valueDimColour : valueTextColour, 4);
+                 muted ? valueDimColour : valueTextColour, 6);
 
         if (visible % 4 == 3)
         {
@@ -497,6 +517,8 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
 
     dragStep = getStepAtX (event.x);
     dragRow = getGridRowAtY (event.y);
+    lastDraggedToggleStep = -1;
+    lastDraggedToggleRow = -1;
     dragStartY = event.y;
     hoverStep = dragStep;
     hoverRow = dragRow;
@@ -522,6 +544,12 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
     }
 
     editStepAt (event.getPosition(), false);
+
+    if (gridBounds.contains (event.getPosition()) && isTypeEditRow (dragRow))
+    {
+        lastDraggedToggleStep = dragStep;
+        lastDraggedToggleRow = dragRow;
+    }
 }
 
 void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
@@ -545,6 +573,23 @@ void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
         return;
     }
 
+    const auto draggedStep = getStepAtX (event.x);
+    const auto draggedRow = getGridRowAtY (event.y);
+
+    if (gridBounds.contains (event.getPosition()) && draggedStep >= 0 && draggedStep < 128
+        && isTypeEditRow (draggedRow))
+    {
+        if (draggedStep != lastDraggedToggleStep || draggedRow != lastDraggedToggleRow)
+        {
+            toggleStepTypeAt (draggedStep, draggedRow);
+            lastDraggedToggleStep = draggedStep;
+            lastDraggedToggleRow = draggedRow;
+            repaint (gridBounds);
+        }
+
+        return;
+    }
+
     editStepAt (event.getPosition(), true);
 }
 
@@ -552,6 +597,8 @@ void PsytrancerAudioProcessorEditor::mouseUp (const juce::MouseEvent&)
 {
     dragStep = -1;
     dragRow = -1;
+    lastDraggedToggleStep = -1;
+    lastDraggedToggleRow = -1;
     repaint (gridBounds);
 }
 
@@ -633,15 +680,34 @@ void PsytrancerAudioProcessorEditor::editStepAt (juce::Point<int> position, bool
         stepData.enabled = ! stepData.enabled;
         processor.setStep (step, stepData);
     }
-    else if (rowIndex == 2)
+    else if (isTypeEditRow (rowIndex))
     {
-        stepData.type = stepData.type == StepType::gate ? StepType::cut
-                      : stepData.type == StepType::cut ? StepType::hold
-                                                        : StepType::gate;
-        processor.setStep (step, stepData);
+        toggleStepTypeAt (step, rowIndex);
     }
 
     repaint();
+}
+
+void PsytrancerAudioProcessorEditor::toggleStepTypeAt (int step, int row)
+{
+    if (step < 0 || step >= 128 || ! isTypeEditRow (row))
+        return;
+
+    setSelectedStep (step);
+    auto stepData = processor.getStep (step);
+    const auto selectedType = row == 2 ? StepType::gate
+                            : row == 3 ? StepType::cut
+                                       : StepType::hold;
+
+    if (stepData.enabled && stepData.type == selectedType)
+        stepData.enabled = false;
+    else
+    {
+        stepData.enabled = true;
+        stepData.type = selectedType;
+    }
+
+    processor.setStep (step, stepData);
 }
 
 int PsytrancerAudioProcessorEditor::getStepAtX (int x) const
@@ -679,17 +745,17 @@ bool PsytrancerAudioProcessorEditor::isStepToggleRow (int row) const
 
 bool PsytrancerAudioProcessorEditor::isTypeEditRow (int row) const
 {
-    return row == 2;
+    return row >= 2 && row <= 4;
 }
 
 bool PsytrancerAudioProcessorEditor::isGateEditRow (int row) const
 {
-    return row == 3;
+    return row == 5;
 }
 
 bool PsytrancerAudioProcessorEditor::isVelocityEditRow (int row) const
 {
-    return row == 4;
+    return row == 6;
 }
 
 bool PsytrancerAudioProcessorEditor::isEditableValueRow (int row) const

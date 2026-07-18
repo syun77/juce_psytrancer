@@ -42,6 +42,7 @@ private:
     bool isEditableValueRow (int row) const;
     bool isStepParameterRow (int row) const;
     bool resetStepValueAt (int step, int row);
+    void toggleStepTypeAt (int step, int row);
     int getPageCount() const;
     void setPage (int newPage);
     void setSelectedStep (int step);
@@ -97,6 +98,8 @@ private:
     int visibleSteps = 16;
     int dragStep = -1;
     int dragRow = -1;
+    int lastDraggedToggleStep = -1;
+    int lastDraggedToggleRow = -1;
     int dragStartY = 0;
     int dragStartPitch = 0;
     float dragStartGate = 1.0f;
