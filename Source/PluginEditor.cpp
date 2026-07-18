@@ -102,19 +102,20 @@ void PsytrancerAudioProcessorEditor::configureControls()
     gateMultiplierSlider.setColour (juce::Slider::textBoxBackgroundColourId, background());
     gateMultiplierSlider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
 
-    for (auto* button : { &lengthDownButton, &lengthUpButton, &prevPageButton, &nextPageButton, &savePresetButton,
-                          &logButton, &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
+    for (auto* button : { &lengthDownButton, &lengthUpButton, &savePresetButton,
+                          &logButton, &copyStepButton, &pasteStepButton, &copyPageButton, &pastePageButton,
+                          &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
     {
         addAndMakeVisible (*button);
         button->setColour (juce::TextButton::buttonColourId, cell());
         button->setColour (juce::TextButton::textColourOffId, text());
     }
 
-    addAndMakeVisible (pageMapToggle);
-    pageMapToggle.setToggleState (true, juce::dontSendNotification);
-    pageMapToggle.setColour (juce::ToggleButton::textColourId, text());
-    pageMapToggle.setColour (juce::ToggleButton::tickColourId, selected());
-    pageMapToggle.setColour (juce::ToggleButton::tickDisabledColourId, dimText());
+    addAndMakeVisible (followPlaybackToggle);
+    followPlaybackToggle.setToggleState (true, juce::dontSendNotification);
+    followPlaybackToggle.setColour (juce::ToggleButton::textColourId, text());
+    followPlaybackToggle.setColour (juce::ToggleButton::tickColourId, selected());
+    followPlaybackToggle.setColour (juce::ToggleButton::tickDisabledColourId, dimText());
 
     addAndMakeVisible (midiKeyToggle);
     midiKeyToggle.setColour (juce::ToggleButton::textColourId, text());
@@ -123,13 +124,16 @@ void PsytrancerAudioProcessorEditor::configureControls()
 
     lengthDownButton.onClick = [this] { changeLengthBy (-visibleSteps); };
     lengthUpButton.onClick = [this] { changeLengthBy (visibleSteps); };
-    prevPageButton.onClick = [this] { setPage (page - 1); };
-    nextPageButton.onClick = [this] { setPage (page + 1); };
-    pageMapToggle.onClick = [this] { repaint(); };
     midiKeyToggle.onClick = [this] { updateRootOctaveControls(); repaint(); };
     presetBox.onChange = [this] { loadSelectedPreset(); };
     savePresetButton.onClick = [this] { saveCurrentPreset(); };
     logButton.onClick = [this] { showLogWindow(); };
+    copyStepButton.onClick = [this] { copySelectedStep(); };
+    pasteStepButton.onClick = [this] { pasteSelectedStep(); };
+    copyPageButton.onClick = [this] { copyCurrentPage(); };
+    pastePageButton.onClick = [this] { pasteCurrentPage(); };
+    pasteStepButton.setEnabled (false);
+    pastePageButton.setEnabled (false);
 
     initButton.onClick = [this]
     {
@@ -193,19 +197,18 @@ void PsytrancerAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour (panel());
     g.fillRoundedRectangle (footer.toFloat(), 6.0f);
 
-    const auto overviewWidth = pageMapToggle.getToggleState() ? 252 : 0;
-    auto overview = overviewWidth > 0 ? footer.removeFromRight (overviewWidth).reduced (8, 3)
-                                      : juce::Rectangle<int>();
+    auto overview = footer.removeFromRight (252).reduced (8, 3);
+    pageOverviewBounds = overview;
 
     g.setColour (dimText());
     g.setFont (14.0f);
+    footer.removeFromRight (356);
     g.drawFittedText ("Page " + juce::String (page + 1) + "/" + juce::String (getPageCount()) + "   Selected Step "
                           + juce::String (selectedStep + 1)
-                          + "   Length +/-16, Page << >>, G/C/H/R",
+                          + "   Click the mini map to change page   G/C/H/R",
                       footer.reduced (12, 0), juce::Justification::centredLeft, 1);
 
-    if (! overview.isEmpty())
-        drawPageOverview (g, overview);
+    drawPageOverview (g, overview);
 }
 
 void PsytrancerAudioProcessorEditor::resized()
@@ -233,11 +236,7 @@ void PsytrancerAudioProcessorEditor::resized()
     setControl (row1, scaleBox, 150);
 
     auto row2 = top.removeFromTop (34);
-    prevPageButton.setBounds (row2.removeFromLeft (46).reduced (3, 4));
-    row2.removeFromLeft (10);
-    nextPageButton.setBounds (row2.removeFromLeft (46).reduced (3, 4));
-    row2.removeFromLeft (10);
-    pageMapToggle.setBounds (row2.removeFromLeft (74).reduced (3, 2));
+    followPlaybackToggle.setBounds (row2.removeFromLeft (82).reduced (3, 2));
     row2.removeFromLeft (14);
     initButton.setBounds (row2.removeFromLeft (70).reduced (3, 4));
     row2.removeFromLeft (10);
@@ -254,6 +253,21 @@ void PsytrancerAudioProcessorEditor::resized()
     savePresetButton.setBounds (row2.removeFromLeft (62).reduced (3, 4));
     row2.removeFromLeft (6);
     logButton.setBounds (row2.removeFromLeft (56).reduced (3, 4));
+
+    auto footer = getLocalBounds().removeFromBottom (footerHeight).reduced (16, 6);
+    footer.removeFromRight (252);
+
+    auto clipboardControls = footer.removeFromRight (356);
+    auto setClipboardButton = [] (juce::Rectangle<int>& row, juce::Component& control, int width)
+    {
+        control.setBounds (row.removeFromLeft (width).reduced (3, 4));
+        row.removeFromLeft (4);
+    };
+
+    setClipboardButton (clipboardControls, copyStepButton, 84);
+    setClipboardButton (clipboardControls, pasteStepButton, 84);
+    setClipboardButton (clipboardControls, copyPageButton, 84);
+    setClipboardButton (clipboardControls, pastePageButton, 84);
 
     area.removeFromBottom (footerHeight);
     gridBounds = area.reduced (0, 8);
@@ -400,12 +414,22 @@ void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::
 
         const auto pageActive = pageIndex < pageCount;
         const auto pagePlaying = playStep >= pageIndex * visibleSteps && playStep < (pageIndex + 1) * visibleSteps;
-        const auto outline = pageIndex == page ? selected() : pagePlaying ? playhead() : juce::Colour (0xff3b424c);
-
         g.setColour (pageActive ? cell() : juce::Colours::black.withAlpha (0.25f));
         g.fillRoundedRectangle (pageArea.toFloat(), 3.0f);
-        g.setColour (outline);
-        g.drawRoundedRectangle (pageArea.toFloat().reduced (0.5f), 3.0f, pageIndex == page || pagePlaying ? 1.5f : 1.0f);
+        g.setColour (juce::Colour (0xff3b424c));
+        g.drawRoundedRectangle (pageArea.toFloat().reduced (0.5f), 3.0f, 1.0f);
+
+        if (pagePlaying)
+        {
+            g.setColour (playhead());
+            g.drawRoundedRectangle (pageArea.toFloat().reduced (1.0f), 3.0f, 2.0f);
+        }
+
+        if (pageIndex == page)
+        {
+            g.setColour (selected());
+            g.drawRoundedRectangle (pageArea.toFloat().reduced (3.0f), 2.0f, 2.0f);
+        }
 
         auto stepsArea = pageArea.reduced (3, 4);
         const auto tickWidth = juce::jmax (1, stepsArea.getWidth() / visibleSteps);
@@ -435,9 +459,41 @@ void PsytrancerAudioProcessorEditor::drawPageOverview (juce::Graphics& g, juce::
     }
 }
 
+int PsytrancerAudioProcessorEditor::getPageAtOverviewPosition (juce::Point<int> position) const
+{
+    auto bounds = pageOverviewBounds;
+
+    if (! bounds.contains (position))
+        return -1;
+
+    bounds.removeFromTop (12);
+    const auto pageGap = 4;
+    const auto pageWidth = juce::jmax (18, (bounds.getWidth() - pageGap * 7) / 8);
+    auto pages = bounds.reduced (0, 1);
+
+    for (auto pageIndex = 0; pageIndex < getPageCount(); ++pageIndex)
+    {
+        const auto pageArea = pages.removeFromLeft (pageWidth);
+        pages.removeFromLeft (pageGap);
+
+        if (pageArea.contains (position))
+            return pageIndex;
+    }
+
+    return -1;
+}
+
 void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
 {
     grabKeyboardFocus();
+
+    if (const auto clickedPage = getPageAtOverviewPosition (event.getPosition()); clickedPage >= 0)
+    {
+        setPage (clickedPage);
+        repaint();
+        return;
+    }
+
     dragStep = getStepAtX (event.x);
     dragRow = getGridRowAtY (event.y);
     dragStartY = event.y;
@@ -804,6 +860,48 @@ void PsytrancerAudioProcessorEditor::loadSelectedPreset()
     }
 }
 
+void PsytrancerAudioProcessorEditor::copySelectedStep()
+{
+    copiedStep = processor.getStep (selectedStep);
+    hasCopiedStep = true;
+    pasteStepButton.setEnabled (true);
+}
+
+void PsytrancerAudioProcessorEditor::pasteSelectedStep()
+{
+    if (! hasCopiedStep)
+        return;
+
+    processor.setStep (selectedStep, copiedStep);
+    processor.panic();
+    repaint (gridBounds);
+}
+
+void PsytrancerAudioProcessorEditor::copyCurrentPage()
+{
+    const auto firstStep = page * visibleSteps;
+
+    for (auto i = 0; i < visibleSteps; ++i)
+        copiedPage[(size_t) i] = processor.getStep (firstStep + i);
+
+    hasCopiedPage = true;
+    pastePageButton.setEnabled (true);
+}
+
+void PsytrancerAudioProcessorEditor::pasteCurrentPage()
+{
+    if (! hasCopiedPage)
+        return;
+
+    const auto firstStep = page * visibleSteps;
+
+    for (auto i = 0; i < visibleSteps; ++i)
+        processor.setStep (firstStep + i, copiedPage[(size_t) i]);
+
+    processor.panic();
+    repaint (gridBounds);
+}
+
 bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
 {
     auto step = processor.getStep (selectedStep);
@@ -882,6 +980,14 @@ bool PsytrancerAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
 
 void PsytrancerAudioProcessorEditor::timerCallback()
 {
+    if (followPlaybackToggle.getToggleState())
+    {
+        const auto playStep = processor.getCurrentStep();
+
+        if (playStep >= 0)
+            setPage (playStep / visibleSteps);
+    }
+
     updateRootOctaveControls();
     repaint (gridBounds);
 }
