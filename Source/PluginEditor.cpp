@@ -489,6 +489,7 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
 
     if (const auto clickedPage = getPageAtOverviewPosition (event.getPosition()); clickedPage >= 0)
     {
+        followPlaybackToggle.setToggleState (false, juce::dontSendNotification);
         setPage (clickedPage);
         repaint();
         return;
@@ -990,4 +991,5 @@ void PsytrancerAudioProcessorEditor::timerCallback()
 
     updateRootOctaveControls();
     repaint (gridBounds);
+    repaint (getLocalBounds().removeFromBottom (footerHeight));
 }
