@@ -263,20 +263,23 @@ void PsytrancerAudioProcessor::processAudioBlock (juce::AudioBuffer<FloatType>& 
     const auto quarterNoteSamples = currentSampleRate * 60.0 / bpm;
     const auto blockLengthPpq = (double) numSamples / quarterNoteSamples;
     const auto expectedPpq = previousPpq + blockLengthPpq;
+    const auto transportJumped = wasPlaying
+        && (ppq + 0.0001 < previousPpq || std::abs (ppq - expectedPpq) > 0.25);
+    const auto triggerCurrentStepAtStart = ! wasPlaying || transportJumped;
 
-    if (wasPlaying && (ppq + 0.0001 < previousPpq || std::abs (ppq - expectedPpq) > 0.25))
+    if (transportJumped)
         sendActiveNoteOff (generated, 0);
 
     wasPlaying = true;
     activeChannel = 1;
-    renderSequenceSegment (generated, 0, numSamples, ppq, bpm, getBaseRootMidiNote());
+    renderSequenceSegment (generated, 0, numSamples, ppq, bpm, getBaseRootMidiNote(), triggerCurrentStepAtStart);
     previousPpq = ppq;
     midi.swapWith (generated);
 }
 
 void PsytrancerAudioProcessor::renderSequenceSegment (juce::MidiBuffer& generated, int segmentStart,
                                                       int segmentLength, double ppq, double bpm,
-                                                      int baseNote)
+                                                      int baseNote, bool triggerCurrentStepAtStart)
 {
     if (segmentLength <= 0 || bpm <= 0.0)
         return;
@@ -295,6 +298,10 @@ void PsytrancerAudioProcessor::renderSequenceSegment (juce::MidiBuffer& generate
     const auto stepLengthPpq = getStepLengthPpq (getResolution());
     const auto sequenceLength = getSequenceLength();
     auto firstStep = (int64_t) std::ceil ((ppq - 1.0e-9) / stepLengthPpq);
+
+    if (triggerCurrentStepAtStart)
+        firstStep = (int64_t) std::floor ((ppq + 1.0e-9) / stepLengthPpq);
+
     auto lastStep = (int64_t) std::floor ((blockEndPpq - 1.0e-9) / stepLengthPpq);
 
     const auto scale = getScaleDefinition (getScaleType());

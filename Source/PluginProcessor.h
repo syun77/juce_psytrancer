@@ -70,7 +70,7 @@ private:
     juce::ValueTree createStateValueTree();
     void loadStateValueTree (const juce::ValueTree&);
     void renderSequenceSegment (juce::MidiBuffer&, int segmentStart, int segmentLength,
-                                double ppq, double bpm, int baseNote);
+                                double ppq, double bpm, int baseNote, bool triggerCurrentStepAtStart = false);
     void sendActiveNoteOff (juce::MidiBuffer&, int sampleOffset);
     void resetTransportState();
 
