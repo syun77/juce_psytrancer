@@ -104,7 +104,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PsytrancerAudioProcessor::cr
         juce::ParameterID { "octave", 1 }, "Octave", 0, 8, 4));
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (
-        juce::ParameterID { "midiKey", 1 }, "MIDI Key", true));
+        juce::ParameterID { "midiKey", 1 }, "MIDI Key", false));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID { "gateMultiplier", 1 }, "Gate Mult",
