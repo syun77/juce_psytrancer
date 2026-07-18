@@ -102,7 +102,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     gateMultiplierSlider.setColour (juce::Slider::textBoxBackgroundColourId, background());
     gateMultiplierSlider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colour (0xff3b424c));
 
-    for (auto* button : { &lengthDownButton, &lengthUpButton, &savePresetButton,
+    for (auto* button : { &lengthDownButton, &lengthUpButton, &savePresetButton, &openPresetFolderButton,
                           &logButton, &copyStepButton, &pasteStepButton, &copyPageButton, &pastePageButton,
                           &initButton, &repeatButton, &shiftLeftButton, &shiftRightButton, &panicButton })
     {
@@ -127,6 +127,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     midiKeyToggle.onClick = [this] { updateRootOctaveControls(); repaint(); };
     presetBox.onChange = [this] { loadSelectedPreset(); };
     savePresetButton.onClick = [this] { saveCurrentPreset(); };
+    openPresetFolderButton.onClick = [this] { openPresetFolder(); };
     logButton.onClick = [this] { showLogWindow(); };
     copyStepButton.onClick = [this] { copySelectedStep(); };
     pasteStepButton.onClick = [this] { pasteSelectedStep(); };
@@ -252,6 +253,8 @@ void PsytrancerAudioProcessorEditor::resized()
     row2.removeFromLeft (8);
     savePresetButton.setBounds (row2.removeFromLeft (62).reduced (3, 4));
     row2.removeFromLeft (6);
+    openPresetFolderButton.setBounds (row2.removeFromLeft (70).reduced (3, 4));
+    row2.removeFromLeft (6);
     logButton.setBounds (row2.removeFromLeft (56).reduced (3, 4));
 
     auto footer = getLocalBounds().removeFromBottom (footerHeight).reduced (16, 6);
@@ -289,6 +292,7 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
     const auto startStep = page * visibleSteps;
     const auto playStep = processor.getCurrentStep();
     const auto sequenceLength = processor.getSequenceLength();
+    const auto scale = getScaleDefinition (processor.getScaleType());
 
     g.setFont (juce::FontOptions (13.0f, juce::Font::bold));
     const std::array<juce::String, 8> labels { "Step", "Pitch", "Octave", "Gate", "Cut", "Hold", "Length", "Velocity" };
@@ -369,6 +373,26 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
                 return;
             }
 
+            if (rowIndex == 0 || rowIndex == 1)
+            {
+                const auto scaleMaximum = juce::jmax (1, *(scale.offsets.end() - 1));
+                const auto signedAmount = rowIndex == 0 ? (float) step.relativePitch / (float) scaleMaximum
+                                                        : (float) step.octaveOffset / 4.0f;
+                const auto clampedAmount = juce::jlimit (-1.0f, 1.0f, signedAmount);
+                const auto barArea = row.reduced (5, 3);
+                const auto halfHeight = barArea.getHeight() / 2;
+                const auto barHeight = juce::roundToInt ((float) halfHeight * std::abs (clampedAmount));
+                const auto centreY = barArea.getCentreY();
+                const auto valueBar = clampedAmount >= 0.0f
+                    ? juce::Rectangle<int> (barArea.getX(), centreY - barHeight, barArea.getWidth(), barHeight)
+                    : juce::Rectangle<int> (barArea.getX(), centreY, barArea.getWidth(), barHeight);
+
+                g.setColour (playhead().withAlpha (0.20f));
+                g.fillRoundedRectangle (valueBar.toFloat(), 2.0f);
+                g.setColour (playhead().withAlpha (0.30f));
+                g.fillRect (barArea.getX(), centreY, barArea.getWidth(), 1);
+            }
+
             if (rowIndex == 5 || rowIndex == 6)
             {
                 const auto fillAmount = rowIndex == 5 ? (step.type == StepType::cut ? step.gateRate * 0.1f
@@ -404,9 +428,14 @@ void PsytrancerAudioProcessorEditor::drawStepGrid (juce::Graphics& g, juce::Rect
         const auto displayedGateRate = step.type == StepType::cut ? step.gateRate * 0.1f : step.gateRate;
 
         const auto showStoredValues = ! stepEnabled;
-        drawRow (showStoredValues || sounded ? juce::String (step.relativePitch) : "-", muted ? valueDimColour : valueTextColour, 0);
+        const auto pitchTextColour = muted ? valueDimColour
+                                           : step.relativePitch == 0 ? dimText().withAlpha (0.72f) : valueTextColour;
+        const auto octaveTextColour = muted ? valueDimColour
+                                            : step.octaveOffset == 0 ? dimText().withAlpha (0.72f) : valueTextColour;
+
+        drawRow (showStoredValues || sounded ? juce::String (step.relativePitch) : "-", pitchTextColour, 0);
         drawRow (showStoredValues || sounded ? juce::String (step.octaveOffset) : "-",
-                 muted ? valueDimColour : valueTextColour, 1);
+                 octaveTextColour, 1);
         drawRow ({}, juce::Colours::transparentBlack, 2);
         drawRow ({}, juce::Colours::transparentBlack, 3);
         drawRow ({}, juce::Colours::transparentBlack, 4);
@@ -948,6 +977,20 @@ void PsytrancerAudioProcessorEditor::loadSelectedPreset()
         updatePageForSelection();
         repaint();
     }
+}
+
+void PsytrancerAudioProcessorEditor::openPresetFolder()
+{
+    const auto directory = processor.getPresetDirectory();
+
+    if (! directory.createDirectory())
+    {
+        appendLogMessage ("Could not create the preset folder:\n" + directory.getFullPathName());
+        showLogWindow();
+        return;
+    }
+
+    directory.revealToUser();
 }
 
 void PsytrancerAudioProcessorEditor::copySelectedStep()

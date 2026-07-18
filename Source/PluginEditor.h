@@ -53,6 +53,7 @@ private:
     void refreshPresetList (const juce::String& selectedName = {});
     void saveCurrentPreset();
     void loadSelectedPreset();
+    void openPresetFolder();
     void copySelectedStep();
     void pasteSelectedStep();
     void copyCurrentPage();
@@ -75,6 +76,7 @@ private:
     juce::ToggleButton followPlaybackToggle { "Follow" };
     juce::ComboBox presetBox;
     juce::TextButton savePresetButton { "Save" };
+    juce::TextButton openPresetFolderButton { "Folder" };
     juce::TextButton logButton { "Log" };
     juce::TextButton copyStepButton { "Copy Step" };
     juce::TextButton pasteStepButton { "Paste Step" };
