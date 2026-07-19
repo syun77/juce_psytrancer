@@ -582,6 +582,7 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
     lastDraggedToggleStep = -1;
     lastDraggedToggleRow = -1;
     isDraggingTypeState = false;
+    resetGestureActive = false;
     dragStartY = event.y;
     hoverStep = dragStep;
     hoverRow = dragRow;
@@ -604,6 +605,7 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
 
     if (event.mods.isMiddleButtonDown() && resetStepValueAt (dragStep, dragRow))
     {
+        resetGestureActive = true;
         repaint();
         return;
     }
@@ -626,6 +628,9 @@ void PsytrancerAudioProcessorEditor::mouseDown (const juce::MouseEvent& event)
 
 void PsytrancerAudioProcessorEditor::mouseDrag (const juce::MouseEvent& event)
 {
+    if (resetGestureActive)
+        return;
+
     if (dragStep >= 0 && dragStep < maxSequenceSteps && isEditableValueRow (dragRow))
     {
         setSelectedStep (dragStep);
@@ -674,6 +679,7 @@ void PsytrancerAudioProcessorEditor::mouseUp (const juce::MouseEvent&)
     lastDraggedToggleStep = -1;
     lastDraggedToggleRow = -1;
     isDraggingTypeState = false;
+    resetGestureActive = false;
     repaint (gridBounds);
 }
 

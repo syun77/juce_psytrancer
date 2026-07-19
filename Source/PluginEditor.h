@@ -105,6 +105,7 @@ private:
     int lastDraggedToggleRow = -1;
     bool isDraggingTypeState = false;
     bool draggedTypeTargetEnabled = false;
+    bool resetGestureActive = false;
     int dragStartY = 0;
     int dragStartPitch = 0;
     int dragStartOctave = 0;
