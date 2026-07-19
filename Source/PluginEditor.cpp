@@ -151,6 +151,7 @@ void PsytrancerAudioProcessorEditor::configureControls()
     initButton.onClick = [this]
     {
         processor.resetToInitialPattern();
+        presetBox.setText ({}, juce::dontSendNotification);
         selectedStep = 0;
         page = 0;
         repaint();

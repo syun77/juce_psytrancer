@@ -417,6 +417,7 @@ void PsytrancerAudioProcessor::resetToInitialPattern()
     }
 
     clearPattern();
+    currentPresetName.clear();
     panic();
 }
 

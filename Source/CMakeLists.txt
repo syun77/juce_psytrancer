@@ -1,6 +1,6 @@
 juce_add_plugin(Psytrancer
     VERSION 0.2.0
-    COMPANY_NAME "Ozeki"
+    COMPANY_NAME "2dgames.jp"
     BUNDLE_ID "com.ozeki.psytrancer"
     PLUGIN_MANUFACTURER_CODE Ozek
     PLUGIN_CODE PsGn
