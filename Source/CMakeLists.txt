@@ -27,8 +27,19 @@ target_compile_definitions(Psytrancer
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
+# Factory presets are embedded in the plug-in so first launch can install them
+# into the user's writable preset directory. CONFIGURE_DEPENDS picks up newly
+# added factory presets on the next CMake configure step.
+file(GLOB PSYTRANCER_FACTORY_PRESETS CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/factory/*.psytrancerpreset")
+
+juce_add_binary_data(PsytrancerFactoryPresets
+    NAMESPACE PsytrancerFactoryPresets
+    SOURCES ${PSYTRANCER_FACTORY_PRESETS})
+
 target_link_libraries(Psytrancer
     PRIVATE
+        PsytrancerFactoryPresets
         juce::juce_audio_utils
     PUBLIC
         juce::juce_recommended_config_flags

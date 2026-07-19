@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "BinaryData.h"
 
 namespace
 {
@@ -83,6 +84,7 @@ PsytrancerAudioProcessor::PsytrancerAudioProcessor()
       parameters (*this, nullptr, "PARAMETERS", createParameterLayout())
 {
     clearPattern();
+    installFactoryPresetsIfNeeded();
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout PsytrancerAudioProcessor::createParameterLayout()
@@ -519,6 +521,39 @@ juce::File PsytrancerAudioProcessor::getPresetDirectory() const
     return applicationDataDirectory
         .getChildFile ("Psytrancer")
         .getChildFile ("Presets");
+}
+
+void PsytrancerAudioProcessor::installFactoryPresetsIfNeeded()
+{
+    const auto directory = getPresetDirectory();
+
+    // A pre-existing directory belongs to the user. Never overwrite its
+    // contents, including when it is intentionally empty.
+    if (directory.exists())
+        return;
+
+    if (! directory.createDirectory())
+    {
+        lastPresetError = "Could not create the preset folder for factory presets:\n"
+                        + directory.getFullPathName();
+        return;
+    }
+
+    for (int i = 0; i < PsytrancerFactoryPresets::namedResourceListSize; ++i)
+    {
+        int dataSize = 0;
+        const auto* resourceName = PsytrancerFactoryPresets::namedResourceList[i];
+        const auto* data = PsytrancerFactoryPresets::getNamedResource (resourceName, dataSize);
+        const auto* originalFilename = PsytrancerFactoryPresets::getNamedResourceOriginalFilename (resourceName);
+
+        if (data == nullptr || dataSize <= 0 || originalFilename == nullptr
+            || ! directory.getChildFile (originalFilename).replaceWithData (data, (size_t) dataSize))
+        {
+            lastPresetError = "Could not install factory presets in:\n"
+                            + directory.getFullPathName();
+            return;
+        }
+    }
 }
 
 juce::StringArray PsytrancerAudioProcessor::getPresetNames() const

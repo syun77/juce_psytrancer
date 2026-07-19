@@ -1,0 +1,783 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PSYTRANCER_STATE presetName="8 beat">
+  <PARAMETERS>
+    <PARAM id="gateMultiplier" value="1.0"/>
+    <PARAM id="length" value="1.0"/>
+    <PARAM id="midiKey" value="0.0"/>
+    <PARAM id="octave" value="4.0"/>
+    <PARAM id="resolution" value="1.0"/>
+    <PARAM id="root" value="0.0"/>
+    <PARAM id="scale" value="2.0"/>
+  </PARAMETERS>
+  <STEPS>
+    <STEP index="0" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="1" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="2" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="3" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="4" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="5" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="6" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="7" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="8" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="9" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="10" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="11" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="12" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="13" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="14" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="15" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="16" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="17" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="18" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="19" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="20" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="21" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="22" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="23" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="24" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="25" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="26" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="27" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="28" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="29" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="30" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="31" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="32" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="33" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="34" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="35" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="36" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="37" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="38" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="39" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="40" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="41" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="42" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="43" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="44" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="45" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="46" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="47" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="48" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="49" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="50" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="51" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="52" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="53" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="54" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="55" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="56" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="57" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="58" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="59" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="60" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="61" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="62" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="63" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="64" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="65" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="66" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="67" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="68" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="69" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="70" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="71" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="72" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="73" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="74" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="75" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="76" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="77" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="78" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="79" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="80" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="81" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="82" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="83" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="84" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="85" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="86" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="87" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="88" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="89" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="90" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="91" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="92" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="93" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="94" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="95" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="96" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="97" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="98" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="99" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="100" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="101" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="102" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="103" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="104" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="105" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="106" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="107" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="108" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="109" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="110" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="111" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="112" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="113" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="114" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="115" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="116" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="117" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="118" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="119" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="120" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="121" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="122" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="123" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="124" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="125" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="126" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="127" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="128" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="129" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="130" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="131" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="132" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="133" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="134" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="135" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="136" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="137" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="138" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="139" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="140" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="141" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="142" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="143" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="144" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="145" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="146" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="147" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="148" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="149" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="150" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="151" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="152" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="153" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="154" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="155" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="156" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="157" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="158" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="159" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="160" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="161" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="162" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="163" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="164" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="165" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="166" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="167" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="168" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="169" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="170" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="171" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="172" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="173" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="174" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="175" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="176" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="177" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="178" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="179" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="180" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="181" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="182" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="183" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="184" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="185" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="186" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="187" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="188" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="189" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="190" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="191" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="192" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="193" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="194" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="195" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="196" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="197" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="198" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="199" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="200" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="201" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="202" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="203" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="204" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="205" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="206" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="207" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="208" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="209" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="210" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="211" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="212" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="213" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="214" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="215" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="216" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="217" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="218" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="219" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="220" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="221" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="222" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="223" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="224" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="225" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="226" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="227" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="228" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="229" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="230" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="231" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="232" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="233" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="234" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="235" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="236" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="237" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="238" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="239" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="240" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="241" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="242" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="243" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="244" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="245" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="246" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="247" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="248" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="249" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="250" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="251" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="252" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="253" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="254" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="255" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="256" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="257" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="258" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="259" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="260" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="261" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="262" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="263" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="264" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="265" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="266" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="267" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="268" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="269" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="270" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="271" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="272" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="273" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="274" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="275" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="276" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="277" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="278" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="279" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="280" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="281" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="282" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="283" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="284" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="285" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="286" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="287" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="288" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="289" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="290" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="291" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="292" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="293" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="294" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="295" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="296" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="297" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="298" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="299" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="300" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="301" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="302" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="303" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="304" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="305" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="306" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="307" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="308" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="309" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="310" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="311" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="312" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="313" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="314" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="315" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="316" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="317" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="318" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="319" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="320" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="321" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="322" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="323" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="324" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="325" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="326" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="327" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="328" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="329" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="330" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="331" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="332" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="333" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="334" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="335" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="336" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="337" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="338" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="339" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="340" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="341" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="342" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="343" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="344" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="345" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="346" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="347" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="348" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="349" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="350" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="351" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="352" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="353" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="354" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="355" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="356" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="357" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="358" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="359" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="360" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="361" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="362" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="363" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="364" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="365" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="366" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="367" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="368" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="369" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="370" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="371" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="372" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="373" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="374" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="375" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="376" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="377" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="378" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="379" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="380" enabled="1" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="381" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="382" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+    <STEP index="383" enabled="0" type="gate" pitch="0" octave="0" gate="1.0"
+          velocity="100"/>
+  </STEPS>
+</PSYTRANCER_STATE>
